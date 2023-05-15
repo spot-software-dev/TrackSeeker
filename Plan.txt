@@ -1,0 +1,22 @@
+Main Feature: Find music in a user's story
+
+    instaloader API
+    Task 1: Return story URL link to a story of a certain user.
+        """
+            property url
+            URL of the picture / video thumbnail of the post
+        """ - (https://instaloader.github.io/module/structures.html)
+
+        subtask 1: Go over a certain user's media and for every video
+
+
+    IG API
+	Task 1: Use IG User to get the user story IG Media objects.
+		https://developers.facebook.com/docs/instagram-api/reference/ig-user#read
+		
+
+
+
+Ideas:
+	for Main Feature:
+		Use "tags" in IG User Get request to recieve "a collection of IG Media in which an IG User has been tagged by another Instagram user."

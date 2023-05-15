@@ -1,0 +1,7 @@
+IG Access Token Creation + App Creation:
+https://docs.oceanwp.org/article/487-how-to-get-instagram-access-token
+
+Convert mp4 to mp3:
+https://stackoverflow.com/questions/55081352/how-to-convert-mp4-to-mp3-using-python
+https://www.geeksforgeeks.org/video-to-audio-convert-using-python/
+pyacoustid: https://www.youtube.com/watch?v=WRsNZa45prE

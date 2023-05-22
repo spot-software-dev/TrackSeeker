@@ -1,0 +1,8 @@
+1. Have the reference song in an audio file.
+2. Open Picard
+3. Add Files -> select desired audio file
+4. Select file in Unclustered Files click "Scan" to make sure it does not exists in the database.
+5. Click Submit AcoustIDs (Note that you need to have a User API Key to access the AcoustID Database. You can aquire one for free at https://acoustid.org/)
+
+Done!
+You can check the fingerprint in the browser by clicking "Lookup in Browser"

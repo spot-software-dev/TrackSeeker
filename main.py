@@ -9,14 +9,16 @@ def main():
     username = input("Enter Exact Username: ")
     instagram_bot = IGBOT()
     stories_music = instagram_bot.instagram_search(username)
-    user_music_path = input("Enter File Path:\n")
-    links = recognize(user_music_path, stories_music)
-    if links:
-        gui.display_links(links)
+    recognised_list = []
+    for story in stories_music:
+        if recognize(story):
+            recognised_list.append(story)
+    if recognised_list:
+        for story in recognised_list:
+            gui.display_links(story)
     else:
         gui.display_no_links()
 
 
 if __name__ == '__main__':
     main()
-

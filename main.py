@@ -3,6 +3,10 @@ from .gui import GUI
 from .music_recognition import recognize
 
 
+def recognition_error_handler(error_msg: str) -> None:
+    raise NotImplementedError  # TODO: Handle recognition error
+
+
 def main():
     gui = GUI()
     gui.run_gui()
@@ -11,8 +15,11 @@ def main():
     stories_music = instagram_bot.instagram_search(username)
     recognised_list = []
     for story in stories_music:
-        if recognize(story):
+        recognition_result = recognize(story)
+        if recognition_result == 'Success':
             recognised_list.append(story)
+        else:
+            recognition_error_handler(recognition_result)
     if recognised_list:
         for story in recognised_list:
             gui.display_links(story)

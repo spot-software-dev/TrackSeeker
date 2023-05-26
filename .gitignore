@@ -1,0 +1,7 @@
+/.env
+/shelf/
+/workspace.xml
+venv/
+.idea/
+pyacoustid/
+echoprint-codegen/

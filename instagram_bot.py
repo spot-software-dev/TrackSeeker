@@ -1,9 +1,14 @@
 import instaloader
 import os
 from moviepy.editor import VideoFileClip
+from dotenv.main import load_dotenv
+from os import environ
+load_dotenv()
 
-BOT_USERNAME = '_avitoledano'
-BOT_PASSWORD = 'MonkeyZone1'
+BOT_USERNAME = environ.get('BOT_USERNAME', '')
+BOT_PASSWORD = environ.get('BOT_PASSWORD', '')
+
+FILE_DIR_PATH = os.path.splitext(os.path.abspath(__file__))[0]
 
 
 class IGBOT:
@@ -24,7 +29,9 @@ class IGBOT:
         videos = []
         for file in os.listdir('stories'):
             if file[-4:] == '.mp4':
-                videos.append(os.path.join(os.getcwd(), file))
+                # TODO: make the paths according to where the file gets ran
+                #  (so that in the tests it will not look for the main stories folder, but the tests stories folder)
+                videos.append(os.path.join(FILE_DIR_PATH, 'stories', file))
         return videos
 
     @staticmethod

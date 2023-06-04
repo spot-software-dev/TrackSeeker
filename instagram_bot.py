@@ -1,60 +1,71 @@
-import instaloader
 import os
+import requests
 from moviepy.editor import VideoFileClip
-from dotenv.main import load_dotenv
-from os import environ
-load_dotenv()
-
-BOT_USERNAME = environ.get('BOT_USERNAME', '')
-BOT_PASSWORD = environ.get('BOT_PASSWORD', '')
 
 FILE_DIR_PATH = os.path.splitext(os.path.abspath(__file__))[0]
+STORIES_DIR_PATH = os.environ.get('STORIES_DIR_PATH', os.path.join(FILE_DIR_PATH, "stories"))
+if not os.path.exists(STORIES_DIR_PATH):
+    os.makedirs(STORIES_DIR_PATH)
 
 
 class IGBOT:
-    def __init__(self):
-        self.bot = instaloader.Instaloader()
-        self.bot.login(BOT_USERNAME, BOT_PASSWORD)
-
-    def get_userID(self, username: str) -> int:
-        return self.bot.check_profile_id(username).userid
-
-    def download_user_stories(self, userid: int) -> None:
-        for story in self.bot.get_stories(userids=[userid]):
-            for story_item in story.get_items():
-                self.bot.download_storyitem(story_item, 'stories')
+    @staticmethod
+    def get_user_id(username: str) -> str:
+        """
+        Discover user ID from given username
+        """
+        url = "https://instagram-scraper-2022.p.rapidapi.com/ig/user_id/"
+        querystring = {"user": username}
+        headers = {
+            "X-RapidAPI-Key": "b0a34a4e88msha374b93d82ca7e5p12b649jsnfab1b77a1f6d",
+            "X-RapidAPI-Host": "instagram-scraper-2022.p.rapidapi.com"
+        }
+        response = requests.get(url, headers=headers, params=querystring)
+        return response.json()['id']
 
     @staticmethod
-    def get_video_paths() -> list:
-        videos = []
-        for file in os.listdir('stories'):
-            if file[-4:] == '.mp4':
-                # TODO: make the paths according to where the file gets ran
-                #  (so that in the tests it will not look for the main stories folder, but the tests stories folder)
-                videos.append(os.path.join(FILE_DIR_PATH, 'stories', file))
-        return videos
+    def download_user_stories(user_id: str) -> dict:
+        stories = IGBOT.download_user_stories_as_videos(user_id)
+        IGBOT.convert_story_videos_to_audio()
+        return stories
 
     @staticmethod
-    def convert_to_mp3(videos_paths: list) -> list:
-        music_paths = []
-        for video_path in videos_paths:
-            audio_filename = f"{os.path.splitext(video_path)[0]}.mp3"
-            video = VideoFileClip(video_path)
-            video.audio.write_audiofile(audio_filename)
-            music_paths.append(audio_filename)
-        return music_paths
-
-    def instagram_search(self, username: str) -> list:
+    def download_user_stories_as_videos(user_id: str) -> dict:
         """
-        Search and download Instagram stories of the entered username or all of instagram's
-        stories tagged with the #Hashtag
-
-        :param username: Instagram Username / #Hashtag
-        :type username: str
-        :return: paths for story audio files found
-        :rtype: list[str, str, str...] / None
+        Download user stories (named with its ID) and return each story ID with its story JSON
         """
-        userid = self.get_userID(username)
-        self.download_user_stories(userid)
-        stories_paths = self.get_video_paths()
-        return self.convert_to_mp3(stories_paths)
+        url = "https://instagram-scraper-2022.p.rapidapi.com/ig/stories/"
+        querystring = {"id_user": user_id}
+        headers = {
+            "X-RapidAPI-Key": "b0a34a4e88msha374b93d82ca7e5p12b649jsnfab1b77a1f6d",
+            "X-RapidAPI-Host": "instagram-scraper-2022.p.rapidapi.com"
+        }
+        response = requests.get(url, headers=headers, params=querystring)
+
+        if response.json()['status'] == 'ok':
+            stories = {}
+            for story in response.json()['reels'][user_id]['items']:
+                if story.get('has_audio'):
+                    story_url = story['video_versions'][0]['url']
+                    stories[story['id']] = story
+                    file_path = os.path.join(STORIES_DIR_PATH, f"{story['id']}.mp4")
+                    try:
+                        with open(file_path, "wb") as f:
+                            response = requests.get(story_url)
+                            f.write(response.content)
+                    except Exception as e:  # TODO: catch the relevant errors
+                        f.close()
+                        raise Exception(e)  # TODO: raise here the appropriate error, make sure to catch it in main!
+                    finally:
+                        f.close()
+            return stories
+        else:
+            raise NotImplementedError  # TODO: raise here the appropriate error, make sure to catch it in main!
+
+    @staticmethod
+    def convert_story_videos_to_audio():
+        for story_video in [os.path.join(STORIES_DIR_PATH, path) for path in os.listdir(STORIES_DIR_PATH)]:
+            file_path, file_extension = os.path.splitext(story_video)
+            if file_extension == ".mp4":
+                video = VideoFileClip(story_video)
+                video.audio.write_audiofile(f"{file_path}.mp3")

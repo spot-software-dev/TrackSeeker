@@ -50,3 +50,8 @@ def test_download_user_stories(bot, setup):
     test_dir_audio_content = [path for path in os.listdir(STORIES_TESTS_DIR) if path.endswith('.mp3')]
     assert all([f"{story['id']}.mp3" in test_dir_audio_content for story in stories.values()])
 
+
+def test_get_audio_urls_from_post_location_id(bot):
+    location_audios = bot.get_audio_urls_from_post_location_id(1977542)  # Location ID of Beit Haamudim
+    first_url = list(location_audios.values())[0][0]
+    assert first_url.startswith("https://instagram")

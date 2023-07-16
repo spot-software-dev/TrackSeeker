@@ -1,6 +1,8 @@
 import os
 import requests
 from moviepy.editor import VideoFileClip
+from dotenv.main import load_dotenv
+load_dotenv()
 
 FILE_DIR_PATH = os.path.splitext(os.path.abspath(__file__))[0]
 STORIES_DIR_PATH = os.environ.get('STORIES_DIR_PATH', os.path.join(FILE_DIR_PATH, "stories"))
@@ -17,8 +19,8 @@ class IGBOT:
         url = "https://instagram-scraper-2022.p.rapidapi.com/ig/user_id/"
         querystring = {"user": username}
         headers = {
-            "X-RapidAPI-Key": "b0a34a4e88msha374b93d82ca7e5p12b649jsnfab1b77a1f6d",
-            "X-RapidAPI-Host": "instagram-scraper-2022.p.rapidapi.com"
+            "X-RapidAPI-Key": os.environ.get("X_RAPID_API_KEY"),
+            "X-RapidAPI-Host": os.environ.get("X_RAPID_API_HOST")
         }
         response = requests.get(url, headers=headers, params=querystring)
         return response.json()['id']
@@ -37,8 +39,8 @@ class IGBOT:
         url = "https://instagram-scraper-2022.p.rapidapi.com/ig/stories/"
         querystring = {"id_user": user_id}
         headers = {
-            "X-RapidAPI-Key": "b0a34a4e88msha374b93d82ca7e5p12b649jsnfab1b77a1f6d",
-            "X-RapidAPI-Host": "instagram-scraper-2022.p.rapidapi.com"
+            "X-RapidAPI-Key": os.environ.get("X_RAPID_API_KEY"),
+            "X-RapidAPI-Host": os.environ.get("X_RAPID_API_HOST")
         }
         response = requests.get(url, headers=headers, params=querystring)
 

@@ -1,6 +1,5 @@
 import pytest
 import os
-from time import sleep
 from tests import TESTS_DIR
 STORIES_TESTS_DIR = os.path.join(TESTS_DIR, 'stories')
 os.environ['STORIES_DIR_PATH'] = STORIES_TESTS_DIR
@@ -58,4 +57,4 @@ def test_download_user_stories(bot, setup, teardown):
     stories = bot.download_user_stories(TEST_IG_ID)
     test_dir_audio_content = [path for path in os.listdir(STORIES_TESTS_DIR) if path.endswith('.mp3')]
     assert all([f"{story['id']}.mp3" in test_dir_audio_content for story in stories.values()])
-    sleep(0.01)
+

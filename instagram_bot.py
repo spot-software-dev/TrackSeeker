@@ -10,6 +10,21 @@ if not os.path.exists(STORIES_DIR_PATH):
     os.makedirs(STORIES_DIR_PATH)
 
 
+class IGError(OSError):
+    """Raised when an error relating the Instagram API occurred"""
+    pass
+
+
+class IGGetError(IGError):
+    """Raised when an error occurred while getting Instagram info using Instagram API"""
+    pass
+
+
+class IGDownloadError(IGError):
+    """Raised when an error occurred while downloading Instagram Stories using Instagram API"""
+    pass
+
+
 class IGBOT:
     @staticmethod
     def get_user_id(username: str) -> str:
@@ -23,6 +38,8 @@ class IGBOT:
             "X-RapidAPI-Host": os.environ.get("X_RAPID_API_HOST")
         }
         response = requests.get(url, headers=headers, params=querystring)
+        if not response.ok:
+            raise IGGetError(response.text)
         return response.json()['id']
 
     @staticmethod
@@ -44,7 +61,7 @@ class IGBOT:
         }
         response = requests.get(url, headers=headers, params=querystring)
 
-        if response.json()['status'] == 'ok':
+        if response.ok:
             stories = {}
             for story in response.json()['reels'][user_id]['items']:
                 if story.get('has_audio'):
@@ -62,7 +79,7 @@ class IGBOT:
                         f.close()
             return stories
         else:
-            raise NotImplementedError  # TODO: raise here the appropriate error, make sure to catch it in main!
+            raise IGDownloadError(response.text)
 
     @staticmethod
     def convert_story_videos_to_audio():

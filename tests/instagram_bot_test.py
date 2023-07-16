@@ -23,15 +23,7 @@ def bot():
 
 @pytest.fixture()
 def setup():
-    # Happens before each test
-    if os.listdir(STORIES_TESTS_DIR):
-        clean_stories_test_directory()
-    yield  # Does nothing
-
-
-@pytest.fixture()
-def teardown():
-    yield  # Does nothing
+    # Happens before test
     if os.listdir(STORIES_TESTS_DIR):
         clean_stories_test_directory()
 
@@ -53,7 +45,7 @@ def test_convert_story_videos_to_audio(bot):
     assert '.mp3' in map(lambda path: os.path.splitext(path)[1], os.listdir(STORIES_TESTS_DIR))
 
 
-def test_download_user_stories(bot, setup, teardown):
+def test_download_user_stories(bot, setup):
     stories = bot.download_user_stories(TEST_IG_ID)
     test_dir_audio_content = [path for path in os.listdir(STORIES_TESTS_DIR) if path.endswith('.mp3')]
     assert all([f"{story['id']}.mp3" in test_dir_audio_content for story in stories.values()])

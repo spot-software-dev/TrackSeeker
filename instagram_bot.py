@@ -68,15 +68,9 @@ class IGBOT:
                     story_url = story['video_versions'][0]['url']
                     stories[story['id']] = story
                     file_path = os.path.join(STORIES_DIR_PATH, f"{story['id']}.mp4")
-                    try:
-                        with open(file_path, "wb") as f:
-                            response = requests.get(story_url)
-                            f.write(response.content)
-                    except Exception as e:  # TODO: catch the relevant errors
-                        f.close()
-                        raise Exception(e)  # TODO: raise here the appropriate error, make sure to catch it in main!
-                    finally:
-                        f.close()
+                    with open(file_path, "wb") as f:
+                        response = requests.get(story_url)
+                        f.write(response.content)
             return stories
         else:
             raise IGDownloadError(response.text)

@@ -6,7 +6,7 @@ from os import environ, path
 import json
 load_dotenv()
 
-MAIN_DIR = path.abspath(__file__)
+MAIN_DIR = path.dirname(path.abspath(__file__))
 time_now = datetime.now()
 logger.add(path.join(MAIN_DIR, 'logs', f"music_recognition_{time_now.strftime('%x')}.log"), rotation="1 day")
 

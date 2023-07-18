@@ -2,7 +2,8 @@ import pytest
 import os
 from music_recognition import recognize
 
-DIR_PATH = os.path.dirname(os.path.realpath(__file__))
+TESTS_DIR = os.path.dirname(os.path.realpath(__file__))
+MEDIA_TESTS_DIR = os.path.join(TESTS_DIR, 'media')
 
 
 def test_existing_track_wav():

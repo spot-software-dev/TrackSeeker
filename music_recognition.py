@@ -35,6 +35,11 @@ class MusicDeleteError(MusicError):
     logger.error("Can't delete audio file from database")
 
 
+class MusicFileDoesNotExist(MusicDeleteError):
+    """Raised when the title entered for deletion does not exist in the database"""
+    logger.error("File does not exist in the database")
+
+
 CONFIG = {
     'host': environ.get('ACRCLOUD_HOST', ''),
     'access_key': environ.get('ACRCLOUD_ACCESS_KEY', ''),
@@ -119,8 +124,8 @@ def get_files_in_db() -> dict:
     return answer
 
 
-def delete_from_db(file_id: int) -> None:
-    """Delete audio file from user music bucket.
+def delete_id_from_db(file_id: int) -> None:
+    """Delete audio file from user music bucket using the track ID.
 
     :param file_id: Audio file's database ID number
     :exception MusicDeleteError: The ACRCloud API encountered an error while deleting user's audio file
@@ -136,6 +141,23 @@ def delete_from_db(file_id: int) -> None:
     ])
     logger.info(f"Finished deleting audio file '{file_id}' from database")
     logger.debug(f"CMD return code: {return_code}")
+
+
+def delete_from_db(title: str) -> None:
+    """
+    Delete audio file from user music bucket using the track Title.
+
+    :param file_id: Track's ID in database
+    :exception MusicDeleteError: The ACRCloud API encountered an error while deleting user's audio file
+    :return: None (Everything is fine)
+    """
+    db = get_files_in_db()
+    files_in_db = get_ids_and_titles(db)
+    if title in list(files_in_db):
+        file_id = get_id_from_title(db, title)
+        delete_id_from_db(file_id)
+    else:
+        raise MusicFileDoesNotExist(f"{'files_in_db': files_in_db, 'entered_title': title}")
 
 
 def get_ids_and_titles(database: dict) -> dict:

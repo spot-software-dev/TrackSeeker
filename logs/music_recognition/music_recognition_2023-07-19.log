@@ -1,0 +1,97 @@
+2023-07-19 16:38:59.626 | DEBUG    | music_recognition:MusicError:19 - Debug info: Bucket ID: 20149
+2023-07-19 16:38:59.628 | ERROR    | music_recognition:MusicRecognitionError:25 - Can't recognize audio file in database
+2023-07-19 16:38:59.628 | ERROR    | music_recognition:MusicUploadError:30 - Can't upload audio file to database
+2023-07-19 16:38:59.629 | ERROR    | music_recognition:MusicDeleteError:35 - Can't delete audio file from database
+2023-07-19 16:38:59.648 | INFO     | music_recognition:recognize:55 - Recognising file in C:\Users\Shaked\Desktop\Shaked\Electronics\Python learning\2022+\TrackSeeker\tests\media\red_samba_sample.wav
+2023-07-19 16:39:00.458 | INFO     | music_recognition:recognize:58 - Done recognising file in C:\Users\Shaked\Desktop\Shaked\Electronics\Python learning\2022+\TrackSeeker\tests\media\red_samba_sample.wav
+2023-07-19 16:39:00.460 | DEBUG    | music_recognition:recognize:59 - Recognition answer: {'result_type': 0, 'status': {'msg': 'Success', 'code': 0, 'version': '1.0'}, 'cost_time': 0.032999992370605, 'metadata': {'custom_files': [{'artist': 'Dor Danino', 'acrid': '9c0f298a66b28fa648da451e7dc9c33c', 'db_end_time_offset_ms': 9260, 'sample_begin_time_offset_ms': 0, 'score': 100, 'play_offset_ms': 9560, 'title': 'Red Samba', 'sample_end_time_offset_ms': 9260, 'album': 'Single', 'db_begin_time_offset_ms': 0, 'bucket_id': '20149', 'duration_ms': 16196}], 'timestamp_utc': '2023-07-19 13:38:59'}}
+2023-07-19 16:39:58.095 | DEBUG    | music_recognition:MusicError:19 - Debug info: Bucket ID: 20149
+2023-07-19 16:39:58.097 | ERROR    | music_recognition:MusicRecognitionError:25 - Can't recognize audio file in database
+2023-07-19 16:39:58.097 | ERROR    | music_recognition:MusicUploadError:30 - Can't upload audio file to database
+2023-07-19 16:39:58.098 | ERROR    | music_recognition:MusicDeleteError:35 - Can't delete audio file from database
+2023-07-19 16:39:58.101 | INFO     | music_recognition:get_files_in_db:112 - Getting audio files from database...
+2023-07-19 16:39:58.565 | INFO     | music_recognition:get_files_in_db:114 - Finished getting audio files from database
+2023-07-19 16:40:32.836 | INFO     | music_recognition:recognize:55 - Recognising file in C:\Users\Shaked\Desktop\Shaked\Electronics\Python learning\2022+\TrackSeeker\instagram_bot\stories\3150339558650618880_60488255066.mp3
+2023-07-19 16:40:32.837 | INFO     | music_recognition:recognize:58 - Done recognising file in C:\Users\Shaked\Desktop\Shaked\Electronics\Python learning\2022+\TrackSeeker\instagram_bot\stories\3150339558650618880_60488255066.mp3
+2023-07-19 16:40:32.852 | DEBUG    | music_recognition:recognize:59 - Recognition answer: {'status': {'msg': 'Decode Audio Error', 'code': 2004}}
+2023-07-19 16:40:32.853 | CRITICAL | logic:logic:35 - Error occurred while recognizing music from story (3150339558650618880_60488255066.mp3)
+	Error message: {'msg': 'Decode Audio Error', 'code': 2004}
+2023-07-19 16:40:32.853 | INFO     | music_recognition:recognize:55 - Recognising file in C:\Users\Shaked\Desktop\Shaked\Electronics\Python learning\2022+\TrackSeeker\instagram_bot\stories\3150341513665979115_60488255066.mp3
+2023-07-19 16:40:32.854 | INFO     | music_recognition:recognize:58 - Done recognising file in C:\Users\Shaked\Desktop\Shaked\Electronics\Python learning\2022+\TrackSeeker\instagram_bot\stories\3150341513665979115_60488255066.mp3
+2023-07-19 16:40:32.854 | DEBUG    | music_recognition:recognize:59 - Recognition answer: {'status': {'msg': 'Decode Audio Error', 'code': 2004}}
+2023-07-19 16:40:32.855 | CRITICAL | logic:logic:35 - Error occurred while recognizing music from story (3150341513665979115_60488255066.mp3)
+	Error message: {'msg': 'Decode Audio Error', 'code': 2004}
+2023-07-19 16:40:32.855 | INFO     | music_recognition:recognize:55 - Recognising file in C:\Users\Shaked\Desktop\Shaked\Electronics\Python learning\2022+\TrackSeeker\instagram_bot\stories\3150361138889721225_60488255066.mp3
+2023-07-19 16:40:32.856 | INFO     | music_recognition:recognize:58 - Done recognising file in C:\Users\Shaked\Desktop\Shaked\Electronics\Python learning\2022+\TrackSeeker\instagram_bot\stories\3150361138889721225_60488255066.mp3
+2023-07-19 16:40:32.857 | DEBUG    | music_recognition:recognize:59 - Recognition answer: {'status': {'msg': 'Decode Audio Error', 'code': 2004}}
+2023-07-19 16:40:32.857 | CRITICAL | logic:logic:35 - Error occurred while recognizing music from story (3150361138889721225_60488255066.mp3)
+	Error message: {'msg': 'Decode Audio Error', 'code': 2004}
+2023-07-19 16:41:22.893 | DEBUG    | music_recognition:MusicError:19 - Debug info: Bucket ID: 20149
+2023-07-19 16:41:22.895 | ERROR    | music_recognition:MusicRecognitionError:25 - Can't recognize audio file in database
+2023-07-19 16:41:22.896 | ERROR    | music_recognition:MusicUploadError:30 - Can't upload audio file to database
+2023-07-19 16:41:22.896 | ERROR    | music_recognition:MusicDeleteError:35 - Can't delete audio file from database
+2023-07-19 16:41:22.899 | INFO     | music_recognition:get_files_in_db:112 - Getting audio files from database...
+2023-07-19 16:41:23.383 | INFO     | music_recognition:get_files_in_db:114 - Finished getting audio files from database
+2023-07-19 16:41:46.771 | INFO     | music_recognition:recognize:55 - Recognising file in C:\Users\Shaked\Desktop\Shaked\Electronics\Python learning\2022+\TrackSeeker\instagram_bot\stories\3150339558650618880_60488255066.mp3
+2023-07-19 16:41:46.772 | INFO     | music_recognition:recognize:58 - Done recognising file in C:\Users\Shaked\Desktop\Shaked\Electronics\Python learning\2022+\TrackSeeker\instagram_bot\stories\3150339558650618880_60488255066.mp3
+2023-07-19 16:41:46.772 | DEBUG    | music_recognition:recognize:59 - Recognition answer: {'status': {'msg': 'Decode Audio Error', 'code': 2004}}
+2023-07-19 16:41:46.773 | CRITICAL | logic:logic:35 - Error occurred while recognizing music from story (3150339558650618880_60488255066.mp3)
+	Error message: {'msg': 'Decode Audio Error', 'code': 2004}
+2023-07-19 16:41:46.773 | INFO     | music_recognition:recognize:55 - Recognising file in C:\Users\Shaked\Desktop\Shaked\Electronics\Python learning\2022+\TrackSeeker\instagram_bot\stories\3150341513665979115_60488255066.mp3
+2023-07-19 16:41:46.774 | INFO     | music_recognition:recognize:58 - Done recognising file in C:\Users\Shaked\Desktop\Shaked\Electronics\Python learning\2022+\TrackSeeker\instagram_bot\stories\3150341513665979115_60488255066.mp3
+2023-07-19 16:41:46.775 | DEBUG    | music_recognition:recognize:59 - Recognition answer: {'status': {'msg': 'Decode Audio Error', 'code': 2004}}
+2023-07-19 16:41:46.775 | CRITICAL | logic:logic:35 - Error occurred while recognizing music from story (3150341513665979115_60488255066.mp3)
+	Error message: {'msg': 'Decode Audio Error', 'code': 2004}
+2023-07-19 16:41:46.776 | INFO     | music_recognition:recognize:55 - Recognising file in C:\Users\Shaked\Desktop\Shaked\Electronics\Python learning\2022+\TrackSeeker\instagram_bot\stories\3150361138889721225_60488255066.mp3
+2023-07-19 16:41:46.776 | INFO     | music_recognition:recognize:58 - Done recognising file in C:\Users\Shaked\Desktop\Shaked\Electronics\Python learning\2022+\TrackSeeker\instagram_bot\stories\3150361138889721225_60488255066.mp3
+2023-07-19 16:41:46.777 | DEBUG    | music_recognition:recognize:59 - Recognition answer: {'status': {'msg': 'Decode Audio Error', 'code': 2004}}
+2023-07-19 16:41:46.778 | CRITICAL | logic:logic:35 - Error occurred while recognizing music from story (3150361138889721225_60488255066.mp3)
+	Error message: {'msg': 'Decode Audio Error', 'code': 2004}
+2023-07-19 16:44:20.169 | DEBUG    | music_recognition:MusicError:19 - Debug info: Bucket ID: 20149
+2023-07-19 16:44:20.174 | ERROR    | music_recognition:MusicRecognitionError:25 - Can't recognize audio file in database
+2023-07-19 16:44:20.175 | ERROR    | music_recognition:MusicUploadError:30 - Can't upload audio file to database
+2023-07-19 16:44:20.176 | ERROR    | music_recognition:MusicDeleteError:35 - Can't delete audio file from database
+2023-07-19 16:44:20.187 | INFO     | music_recognition:get_files_in_db:112 - Getting audio files from database...
+2023-07-19 16:44:20.785 | INFO     | music_recognition:get_files_in_db:114 - Finished getting audio files from database
+2023-07-19 16:44:50.700 | INFO     | music_recognition:recognize:55 - Recognising file in C:\Users\Shaked\Desktop\Shaked\Electronics\Python learning\2022+\TrackSeeker\instagram_bot\stories\3150339558650618880_60488255066.mp3
+2023-07-19 16:44:50.702 | INFO     | music_recognition:recognize:58 - Done recognising file in C:\Users\Shaked\Desktop\Shaked\Electronics\Python learning\2022+\TrackSeeker\instagram_bot\stories\3150339558650618880_60488255066.mp3
+2023-07-19 16:44:50.703 | DEBUG    | music_recognition:recognize:59 - Recognition answer: {'status': {'msg': 'Decode Audio Error', 'code': 2004}}
+2023-07-19 16:44:50.704 | CRITICAL | logic:logic:35 - Error occurred while recognizing music from story (3150339558650618880_60488255066.mp3)
+	Error message: {'msg': 'Decode Audio Error', 'code': 2004}
+2023-07-19 16:44:50.705 | INFO     | music_recognition:recognize:55 - Recognising file in C:\Users\Shaked\Desktop\Shaked\Electronics\Python learning\2022+\TrackSeeker\instagram_bot\stories\3150341513665979115_60488255066.mp3
+2023-07-19 16:44:50.706 | INFO     | music_recognition:recognize:58 - Done recognising file in C:\Users\Shaked\Desktop\Shaked\Electronics\Python learning\2022+\TrackSeeker\instagram_bot\stories\3150341513665979115_60488255066.mp3
+2023-07-19 16:44:50.707 | DEBUG    | music_recognition:recognize:59 - Recognition answer: {'status': {'msg': 'Decode Audio Error', 'code': 2004}}
+2023-07-19 16:44:50.708 | CRITICAL | logic:logic:35 - Error occurred while recognizing music from story (3150341513665979115_60488255066.mp3)
+	Error message: {'msg': 'Decode Audio Error', 'code': 2004}
+2023-07-19 16:44:50.709 | INFO     | music_recognition:recognize:55 - Recognising file in C:\Users\Shaked\Desktop\Shaked\Electronics\Python learning\2022+\TrackSeeker\instagram_bot\stories\3150361138889721225_60488255066.mp3
+2023-07-19 16:44:50.710 | INFO     | music_recognition:recognize:58 - Done recognising file in C:\Users\Shaked\Desktop\Shaked\Electronics\Python learning\2022+\TrackSeeker\instagram_bot\stories\3150361138889721225_60488255066.mp3
+2023-07-19 16:44:50.712 | DEBUG    | music_recognition:recognize:59 - Recognition answer: {'status': {'msg': 'Decode Audio Error', 'code': 2004}}
+2023-07-19 16:44:50.713 | CRITICAL | logic:logic:35 - Error occurred while recognizing music from story (3150361138889721225_60488255066.mp3)
+	Error message: {'msg': 'Decode Audio Error', 'code': 2004}
+2023-07-19 16:45:10.331 | DEBUG    | music_recognition:MusicError:19 - Debug info: Bucket ID: 20149
+2023-07-19 16:45:10.335 | ERROR    | music_recognition:MusicRecognitionError:25 - Can't recognize audio file in database
+2023-07-19 16:45:10.336 | ERROR    | music_recognition:MusicUploadError:30 - Can't upload audio file to database
+2023-07-19 16:45:10.337 | ERROR    | music_recognition:MusicDeleteError:35 - Can't delete audio file from database
+2023-07-19 16:45:10.344 | INFO     | music_recognition:get_files_in_db:112 - Getting audio files from database...
+2023-07-19 16:45:10.811 | INFO     | music_recognition:get_files_in_db:114 - Finished getting audio files from database
+2023-07-19 16:49:46.620 | DEBUG    | music_recognition:MusicError:19 - Debug info: Bucket ID: 20149
+2023-07-19 16:49:46.624 | ERROR    | music_recognition:MusicRecognitionError:25 - Can't recognize audio file in database
+2023-07-19 16:49:46.625 | ERROR    | music_recognition:MusicUploadError:30 - Can't upload audio file to database
+2023-07-19 16:49:46.627 | ERROR    | music_recognition:MusicDeleteError:35 - Can't delete audio file from database
+2023-07-19 16:49:46.639 | INFO     | music_recognition:get_files_in_db:112 - Getting audio files from database...
+2023-07-19 16:49:47.186 | INFO     | music_recognition:get_files_in_db:114 - Finished getting audio files from database
+2023-07-19 16:57:20.343 | DEBUG    | music_recognition:MusicError:19 - Debug info: Bucket ID: 20149
+2023-07-19 16:57:20.348 | ERROR    | music_recognition:MusicRecognitionError:25 - Can't recognize audio file in database
+2023-07-19 16:57:20.350 | ERROR    | music_recognition:MusicUploadError:30 - Can't upload audio file to database
+2023-07-19 16:57:20.351 | ERROR    | music_recognition:MusicDeleteError:35 - Can't delete audio file from database
+2023-07-19 16:57:20.364 | INFO     | music_recognition:get_files_in_db:112 - Getting audio files from database...
+2023-07-19 16:57:20.947 | INFO     | music_recognition:get_files_in_db:114 - Finished getting audio files from database
+2023-07-19 17:00:46.414 | INFO     | music_recognition:recognize:55 - Recognising file in C:\Users\Shaked\Desktop\Shaked\Electronics\Python learning\2022+\TrackSeeker\instagram_bot_media\stories\3150339558650618880_60488255066.mp3
+2023-07-19 17:00:47.068 | INFO     | music_recognition:recognize:58 - Done recognising file in C:\Users\Shaked\Desktop\Shaked\Electronics\Python learning\2022+\TrackSeeker\instagram_bot_media\stories\3150339558650618880_60488255066.mp3
+2023-07-19 17:00:47.069 | DEBUG    | music_recognition:recognize:59 - Recognition answer: {'status': {'code': 1001, 'msg': 'No result', 'version': '1.0'}}
+2023-07-19 17:00:47.070 | INFO     | music_recognition:recognize:55 - Recognising file in C:\Users\Shaked\Desktop\Shaked\Electronics\Python learning\2022+\TrackSeeker\instagram_bot_media\stories\3150341513665979115_60488255066.mp3
+2023-07-19 17:00:47.640 | INFO     | music_recognition:recognize:58 - Done recognising file in C:\Users\Shaked\Desktop\Shaked\Electronics\Python learning\2022+\TrackSeeker\instagram_bot_media\stories\3150341513665979115_60488255066.mp3
+2023-07-19 17:00:47.641 | DEBUG    | music_recognition:recognize:59 - Recognition answer: {'status': {'msg': 'No result', 'code': 1001, 'version': '1.0'}}
+2023-07-19 17:00:47.643 | INFO     | music_recognition:recognize:55 - Recognising file in C:\Users\Shaked\Desktop\Shaked\Electronics\Python learning\2022+\TrackSeeker\instagram_bot_media\stories\3150361138889721225_60488255066.mp3
+2023-07-19 17:00:48.246 | INFO     | music_recognition:recognize:58 - Done recognising file in C:\Users\Shaked\Desktop\Shaked\Electronics\Python learning\2022+\TrackSeeker\instagram_bot_media\stories\3150361138889721225_60488255066.mp3
+2023-07-19 17:00:48.247 | DEBUG    | music_recognition:recognize:59 - Recognition answer: {'cost_time': 0.019999980926514, 'status': {'code': 0, 'msg': 'Success', 'version': '1.0'}, 'result_type': 0, 'metadata': {'custom_files': [{'db_begin_time_offset_ms': 26180, 'db_end_time_offset_ms': 35440, 'sample_begin_time_offset_ms': 0, 'sample_end_time_offset_ms': 9620, 'play_offset_ms': 35440, 'title': 'Nicolas Masseyeff & Parallelle - Renegade (Adam Ten & Mita Gami Remix)', 'album': 'Single', 'acrid': 'bcaee3f9c6cb373a5e45c463260d1c3a', 'artist': 'Adam Ten', 'bucket_id': '20149', 'duration_ms': 333722, 'score': 54}], 'timestamp_utc': '2023-07-19 14:00:47'}}

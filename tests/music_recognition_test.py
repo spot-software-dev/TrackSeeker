@@ -1,9 +1,10 @@
 import os
 import pytest
 from music_recognition import recognize, get_files_in_db, upload_to_db, delete_from_db
-from music_recognition import get_id_from_title, get_ids_and_titles, MusicRecognitionError
+from music_recognition import get_id_from_title, get_ids_and_titles, MusicRecognitionError, get_human_readable_db
 
 DIR_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'media')
+TEST_TRACKS_IN_DB = ['intro + sound the system', 'Melafefon', 'Red Samba', 'Billie Jean']
 
 
 @pytest.fixture()
@@ -80,3 +81,10 @@ def test_get_ids_and_titles():
 def test_get_id_from_title():
     db = get_files_in_db()
     assert type(get_id_from_title(db, 'Red Samba')) == int
+
+
+def test_get_human_readable_db():
+    db = get_human_readable_db()
+    db_tracks_titles = [track['title'] for track in db]
+    for track in TEST_TRACKS_IN_DB:
+        assert track in db_tracks_titles

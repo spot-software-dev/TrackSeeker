@@ -1,12 +1,11 @@
+from loguru import logger
+
+
 class GUI:
-    def __init__(self):
-        raise NotImplementedError
+    @staticmethod
+    def display_link(recognition: dict) -> None:
+        logger.info(f"Found a match! {recognition['title']} by {recognition['artist']} played in {recognition['url']}")
 
-    def run_gui(self):
-        raise NotImplementedError
-
-    def display_links(self, links):
-        raise NotImplementedError
-
-    def display_no_links(self):
-        raise NotImplementedError
+    @staticmethod
+    def display_no_links():
+        logger.info('No recognitions found :)')

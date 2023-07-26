@@ -1,0 +1,11 @@
+2023-07-25 20:54:18.865 | DEBUG    | TrackSeeker.music_recognition:MusicError:19 - Debug info: Bucket ID: 20149
+2023-07-25 20:54:18.966 | ERROR    | TrackSeeker.music_recognition:MusicRecognitionError:25 - Can't recognize audio file in database
+2023-07-25 20:54:19.616 | ERROR    | TrackSeeker.music_recognition:MusicUploadError:30 - Can't upload audio file to database
+2023-07-25 20:54:20.503 | ERROR    | TrackSeeker.music_recognition:MusicDeleteError:35 - Can't delete audio file from database
+2023-07-25 20:54:53.146 | DEBUG    | TrackSeeker.music_recognition:MusicError:19 - Debug info: Bucket ID: 20149
+2023-07-25 20:54:53.900 | ERROR    | TrackSeeker.music_recognition:MusicRecognitionError:25 - Can't recognize audio file in database
+2023-07-25 20:54:54.688 | ERROR    | TrackSeeker.music_recognition:MusicUploadError:30 - Can't upload audio file to database
+2023-07-25 20:54:54.701 | ERROR    | TrackSeeker.music_recognition:MusicDeleteError:35 - Can't delete audio file from database
+2023-07-25 21:19:50.769 | INFO     | TrackSeeker.music_recognition:recognize:55 - Recognising file in C:\Users\Shaked\Desktop\Shaked\Electronics\Python learning\2022+\TrackSeeker\instagram_bot_media\3154861948918636472_60488255066.mp3
+2023-07-25 21:20:02.219 | INFO     | TrackSeeker.music_recognition:recognize:58 - Done recognising file in C:\Users\Shaked\Desktop\Shaked\Electronics\Python learning\2022+\TrackSeeker\instagram_bot_media\3154861948918636472_60488255066.mp3
+2023-07-25 21:20:03.210 | DEBUG    | TrackSeeker.music_recognition:recognize:59 - Recognition answer: {'cost_time': 0.031000137329102, 'metadata': {'timestamp_utc': '2023-07-25 18:20:02', 'custom_files': [{'score': 100, 'bucket_id': '20149', 'acrid': 'bcaee3f9c6cb373a5e45c463260d1c3a', 'album': 'Single', 'db_begin_time_offset_ms': 91140, 'db_end_time_offset_ms': 98020, 'sample_begin_time_offset_ms': 1980, 'sample_end_time_offset_ms': 8860, 'play_offset_ms': 98800, 'duration_ms': 333722, 'artist': 'Adam Ten', 'title': 'Nicolas Masseyeff & Parallelle - Renegade (Adam Ten & Mita Gami Remix)'}]}, 'status': {'code': 0, 'msg': 'Success', 'version': '1.0'}, 'result_type': 0}

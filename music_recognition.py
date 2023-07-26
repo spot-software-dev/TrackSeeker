@@ -11,7 +11,7 @@ load_dotenv()
 BUCKET_ID = 20149
 MAIN_DIR = path.dirname(path.abspath(__file__))
 date_now = datetime.date.today()
-logger.add(path.join(MAIN_DIR, 'logs', f"music_recognition_{date_now}.log"), rotation="1 day")
+logger.add(path.join(MAIN_DIR, 'logs', 'music_recognition', f"music_recognition_{date_now}.log"), rotation="1 day")
 
 
 class MusicError(OSError):
@@ -46,7 +46,7 @@ CONFIG = {
 BUCKET_INTERACTION_TOKEN = environ.get('TEST_ALL_TOKEN', '')
 
 
-def recognize(recording_sample: str) -> bool:
+def recognize(recording_sample: str) -> bool or dict:
     """
     Check if the recorded sample is present in the user database (the sample is cropped to the first 10 seconds)
     :param recording_sample: Path to local audio file
@@ -58,7 +58,7 @@ def recognize(recording_sample: str) -> bool:
     logger.info(f"Done recognising file in {recording_sample}")
     logger.debug(f"Recognition answer: {answer}")
     if answer["status"]["msg"] == 'Success':
-        return True
+        return answer['metadata']['custom_files']
     elif answer['status']['msg'] == 'No result':
         return False
     else:
@@ -154,3 +154,22 @@ def get_ids_and_titles(database: dict) -> dict:
 def get_id_from_title(database: dict, title: str) -> int:
     db_ids_titles = get_ids_and_titles(database)
     return int(db_ids_titles[title])
+
+
+def get_human_readable_db() -> list:
+    """
+    Get the main metadata of all tracks in database: title, album, artist, ID in database
+    """
+    full_db = get_files_in_db()
+    readable_db = []
+    for track_num in range(len(full_db['data'])):
+        track_title = full_db['data'][track_num]['title']
+        track_album = full_db['data'][track_num].get('album')
+        track_artist = full_db['data'][track_num].get('artist')
+        track_id = full_db['data'][track_num]['id']
+        if track_title in [track['title'] for track in readable_db]:
+            logger.warning(f"Database contains duplicate files titled '{track_title}'.")
+
+        readable_db.append({'title': track_title, 'album': track_album, 'artist': track_artist, 'ID': track_id})
+
+    return readable_db

@@ -1,0 +1,3 @@
+[submodule "nextjs"]
+	path = nextjs
+	url = git@github.com:shakos1/nextjs.git

@@ -1,0 +1,12 @@
+/.env
+/shelf/
+/workspace.xml
+venv/**
+.idea/**
+pyacoustid/
+echoprint-codegen/
+__pycache__/
+*/logs/**
+
+
+.idea/

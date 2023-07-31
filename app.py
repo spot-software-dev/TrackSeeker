@@ -1,5 +1,4 @@
-# app.py
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, abort
 from flask_cors import CORS, cross_origin
 from .logic import logic
 from .music_recognition import get_human_readable_db, upload_to_db, delete_from_db
@@ -19,35 +18,56 @@ def get_data():
 @app.route('/api/songs', methods=['GET'])
 @cross_origin()
 def get_songs():
-    args = request.args
-    username = args.get("username")
-    data = logic(username)
-    print(data)
-    return data
+    username = request.args.get("username")
+    if not username:
+        return jsonify(error="Missing 'username' parameter."), 400
+
+    try:
+        data = logic(username)
+        return jsonify(data)
+    except Exception as e:
+        return jsonify(error=str(e)), 500
 
 
-@app.route('/api/database_songs')
+@app.route('/api/database_songs', methods=['GET'])
 def get_database_songs():
     db = get_human_readable_db()
-    return db
+    return jsonify(db)
 
 
-@app.route('/api/upload_song')
+@app.route('/api/upload_song', methods=['POST'])
 def upload_song():
-    args = request.args
-    track_path = args.get("track_path")
-    title = args.get("title")
-    artist = args.get("artist")
-    album = args.get("album")
-    upload_to_db(user_full_track=track_path, title=title, artist=artist, album=album)
-    return
+    data = request.get_json()
+    track_path = data.get("track_path")
+    title = data.get("title")
+    artist = data.get("artist")
+    album = data.get("album")
+    
+    # if not all([track_path, title, artist, album]):
+    #     return jsonify(error="Missing required parameters."), 400
+
+    try:
+        upload_to_db(user_full_track=track_path, title=title, artist=artist, album=album)
+        return jsonify(message="Song uploaded successfully.")
+    except Exception as e:
+        return jsonify(error=str(e)), 500
 
 
-@app.route('/api/delete_song')
+@app.route('/api/delete_song', methods=['POST'])
 def delete_song():
-    args = request.args
-    title = args.get("title")
-    delete_from_db(title)
+    data = request.get_json()  # Retrieve data from the request body
+
+    # Check if the 'title' parameter exists in the request body
+    title = data.get("title")
+    if not title:
+        return jsonify(error="Missing 'title' parameter in the request body."), 400
+
+    try:
+        delete_from_db(title)
+        return jsonify(message="Song deleted successfully.")
+    except Exception as e:
+        return jsonify(error=str(e)), 500
+
 
 
 if __name__ == '__main__':

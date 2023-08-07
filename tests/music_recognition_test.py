@@ -1,9 +1,10 @@
 import os
 import pytest
-from music_recognition import recognize, get_files_in_db, upload_to_db, delete_from_db
-from music_recognition import get_id_from_title, get_ids_and_titles, MusicRecognitionError
+from music_recognition import recognize, get_files_in_db, upload_to_db, delete_id_from_db
+from music_recognition import get_id_from_title, get_ids_and_titles, MusicRecognitionError, get_human_readable_db, delete_from_db
 
 DIR_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'media')
+TEST_TRACKS_IN_DB = ['intro + sound the system', 'Alawan', 'Red Samba', 'Billie Jean']
 
 
 @pytest.fixture()
@@ -14,11 +15,13 @@ def cleanup():
     files_in_db = get_ids_and_titles(db)
     if file_to_delete in list(files_in_db):
         file_id = get_id_from_title(db, file_to_delete)
-        delete_from_db(file_id)
+        delete_id_from_db(file_id)
     yield
     db = get_files_in_db()
-    file_id = get_id_from_title(db, file_to_delete)
-    delete_from_db(file_id)
+    files_in_db = get_ids_and_titles(db)
+    if file_to_delete in list(files_in_db):
+        file_id = get_id_from_title(db, file_to_delete)
+        delete_id_from_db(file_id)
 
 
 def test_existing_track_wav():
@@ -80,3 +83,24 @@ def test_get_ids_and_titles():
 def test_get_id_from_title():
     db = get_files_in_db()
     assert type(get_id_from_title(db, 'Red Samba')) == int
+
+
+def test_get_human_readable_db():
+    db = get_human_readable_db()
+    db_tracks_titles = [track['title'] for track in db]
+    for track in TEST_TRACKS_IN_DB:
+        assert track in db_tracks_titles
+
+
+def test_delete_from_db(cleanup):   
+    added_track_title = 'intro + sound the system'
+    upload_to_db(
+        os.path.join(DIR_PATH, 'Raggae_Soundsystem_intro.mp3'),
+        title=added_track_title,
+        artist='Jenja & The Band'
+    )
+    db_before_delete = get_files_in_db()
+    delete_from_db(added_track_title)
+    db_after_delete = get_files_in_db()
+    assert db_after_delete != db_before_delete
+    assert added_track_title not in db_after_delete

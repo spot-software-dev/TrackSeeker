@@ -1,7 +1,7 @@
 import pytest
 import os
 from tests import TESTS_DIR
-STORIES_TESTS_DIR = os.path.join(TESTS_DIR, 'stories')
+STORIES_TESTS_DIR = os.path.join(TESTS_DIR, 'test_instagram_bot_media')
 os.environ['STORIES_DIR_PATH'] = STORIES_TESTS_DIR
 from instagram_bot import IGBOT
 
@@ -29,8 +29,13 @@ def setup():
 
 
 def test_user_id(bot):
-    yula_id = bot.get_user_id(TEST_IG_USERNAME)
-    assert (yula_id == TEST_IG_ID)
+    test_id = bot.get_user_id(TEST_IG_USERNAME)
+    assert test_id == TEST_IG_ID
+
+
+def test_get_userinfo(bot):
+    test_username = bot.get_userinfo(TEST_IG_ID)['username']
+    assert test_username == TEST_IG_USERNAME
 
 
 def test_download_user_stories_as_videos(bot, setup):

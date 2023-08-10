@@ -176,7 +176,7 @@ def delete_id_from_db_protected_for_web(file_id: int) -> None:
     db = get_files_in_db()
     files_in_db = get_ids_and_titles(db)
     if file_id in list(files_in_db.values()):
-        delete_id_from_db(file_id)
+        delete_id_from_db(int(file_id))
     else:
         raise MusicFileDoesNotExist(f"{'files_in_db': files_in_db, 'entered_title': title}")
 

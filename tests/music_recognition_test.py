@@ -1,7 +1,8 @@
 import os
 import pytest
 from music_recognition import recognize, get_files_in_db, upload_to_db, delete_id_from_db
-from music_recognition import get_id_from_title, get_ids_and_titles, MusicRecognitionError, get_human_readable_db, delete_from_db
+from music_recognition import get_id_from_title, get_ids_and_titles, MusicRecognitionError, get_human_readable_db
+from music_recognition import delete_from_db, delete_id_from_db_protected_for_web
 
 DIR_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'media')
 TEST_TRACKS_IN_DB = ['intro + sound the system', 'Alawan', 'Red Samba', 'Billie Jean']
@@ -101,6 +102,21 @@ def test_delete_from_db(cleanup):
     )
     db_before_delete = get_files_in_db()
     delete_from_db(added_track_title)
+    db_after_delete = get_files_in_db()
+    assert db_after_delete != db_before_delete
+    assert added_track_title not in db_after_delete
+
+
+def test_delete_id_from_db_protected_for_web(cleanup):
+    added_track_title = 'intro + sound the system'
+    upload_to_db(
+        os.path.join(DIR_PATH, 'Raggae_Soundsystem_intro.mp3'),
+        title=added_track_title,
+        artist='Jenja & The Band'
+    )
+    db_before_delete = get_files_in_db()
+    file_id = get_id_from_title(db_before_delete, added_track_title)
+    delete_id_from_db_protected_for_web(file_id)
     db_after_delete = get_files_in_db()
     assert db_after_delete != db_before_delete
     assert added_track_title not in db_after_delete

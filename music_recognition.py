@@ -152,7 +152,7 @@ def delete_from_db(title: str) -> None:
     """
     Delete audio file from user music bucket using the track Title.
 
-    :param file_id: Track's ID in database
+    :param title: Track's title in database
     :exception MusicDeleteError: The ACRCloud API encountered an error while deleting user's audio file
     :return: None (Everything is fine)
     """
@@ -160,6 +160,22 @@ def delete_from_db(title: str) -> None:
     files_in_db = get_ids_and_titles(db)
     if title in list(files_in_db):
         file_id = get_id_from_title(db, title)
+        delete_id_from_db(file_id)
+    else:
+        raise MusicFileDoesNotExist(f"{'files_in_db': files_in_db, 'entered_title': title}")
+
+
+def delete_id_from_db_protected_for_web(file_id: int) -> None:
+    """
+    Delete audio file from user music bucket using the track Title.
+
+    :param file_id: Track's ID in database
+    :exception MusicDeleteError: The ACRCloud API encountered an error while deleting user's audio file
+    :return: None (Everything is fine)
+    """
+    db = get_files_in_db()
+    files_in_db = get_ids_and_titles(db)
+    if file_id in list(files_in_db.values()):
         delete_id_from_db(file_id)
     else:
         raise MusicFileDoesNotExist(f"{'files_in_db': files_in_db, 'entered_title': title}")
@@ -197,6 +213,6 @@ def get_human_readable_db() -> list:
         if track_title in [track['title'] for track in readable_db]:
             logger.warning(f"Database contains duplicate files titled '{track_title}'.")
 
-        readable_db.append({'title': track_title, 'album': track_album, 'artist': track_artist, 'ID': track_id})
+        readable_db.append({'title': track_title, 'album': track_album, 'artist': track_artist, 'id': track_id})
 
     return readable_db

@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request, abort
 from flask_cors import CORS, cross_origin
 from .logic import logic
-from .music_recognition import get_human_readable_db, upload_to_db, delete_from_db
+from .music_recognition import get_human_readable_db, upload_to_db, delete_id_from_db_protected_for_web
 
 app = Flask(__name__)
 cors = CORS(app)
@@ -57,17 +57,16 @@ def upload_song():
 def delete_song():
     data = request.get_json()  # Retrieve data from the request body
 
-    # Check if the 'title' parameter exists in the request body
-    title = data.get("title")
-    if not title:
-        return jsonify(error="Missing 'title' parameter in the request body."), 400
+    # Check if the 'id' parameter exists in the request body
+    file_id = data.get("id")
+    if not file_id:
+        return jsonify(error="Missing 'id' parameter in the request body."), 400
 
     try:
-        delete_from_db(title)
+        delete_id_from_db_protected_for_web(file_id)
         return jsonify(message="Song deleted successfully.")
     except Exception as e:
         return jsonify(error=str(e)), 500
-
 
 
 if __name__ == '__main__':

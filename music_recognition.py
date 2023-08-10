@@ -202,8 +202,8 @@ def get_human_readable_db() -> list:
     readable_db = []
     for track_num in range(len(full_db['data'])):
         track_title = full_db['data'][track_num]['title']
-        track_album = full_db['data'][track_num].get('album')
-        track_artist = full_db['data'][track_num].get('artist')
+        track_album = full_db['data'][track_num]['user_defined'].get('album')
+        track_artist = full_db['data'][track_num]['user_defined'].get('artist')
         track_id = full_db['data'][track_num]['id']
         if track_title in [track['title'] for track in readable_db]:
             logger.warning(f"Database contains duplicate files titled '{track_title}'.")

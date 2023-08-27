@@ -4,14 +4,16 @@ import datetime
 import subprocess
 from acrcloud.recognizer import ACRCloudRecognizer
 from dotenv.main import load_dotenv
-from os import environ, path
+import os
 import json
+
 load_dotenv()
 
 BUCKET_ID = 20149
 MAIN_DIR = path.dirname(path.abspath(__file__))
+MAIN_DIR = os.path.dirname(os.path.abspath(__file__))
 date_now = datetime.date.today()
-logger.add(path.join(MAIN_DIR, 'logs', 'music_recognition', f"music_recognition_{date_now}.log"), rotation="1 day")
+logger.add(os.path.join(MAIN_DIR, 'logs', 'music_recognition', f"music_recognition_{date_now}.log"), rotation="1 day")
 
 
 class MusicError(OSError):
@@ -41,14 +43,14 @@ class MusicFileDoesNotExist(MusicDeleteError):
 
 
 CONFIG = {
-    'host': environ.get('ACRCLOUD_HOST', ''),
-    'access_key': environ.get('ACRCLOUD_ACCESS_KEY', ''),
-    'access_secret': environ.get('ACRCLOUD_ACCESS_SECRET', ''),
+    'host': os.environ.get('ACRCLOUD_HOST', ''),
+    'access_key': os.environ.get('ACRCLOUD_ACCESS_KEY', ''),
+    'access_secret': os.environ.get('ACRCLOUD_ACCESS_SECRET', ''),
     'debug': False,
     'timeout': 10  # seconds
 }
 # BUCKET_INTERACTION_TOKEN = environ.get('ACRCLOUD_USER_INTERACTION_TOKEN', '')
-BUCKET_INTERACTION_TOKEN = environ.get('TEST_ALL_TOKEN', '')
+BUCKET_INTERACTION_TOKEN = os.environ.get('TEST_ALL_TOKEN', '')
 
 
 def recognize(recording_sample: str) -> bool or dict:
@@ -86,7 +88,7 @@ def upload_to_db(user_full_track: str, title: str, artist: str, album: str = 'Si
     payload = {'title': title, 'data_type': 'audio',
                "user_defined": json.dumps({"artist": artist, 'album': album})}
     files = [
-        ('file', (path.split(user_full_track)[-1], open(user_full_track, 'rb'), 'audio/mpeg'))
+        ('file', (os.path.split(user_full_track)[-1], open(user_full_track, 'rb'), 'audio/mpeg'))
     ]
     headers = {
         'Accept': 'application/json',

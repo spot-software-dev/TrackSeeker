@@ -24,7 +24,12 @@ class MusicError(OSError):
 
 class MusicRecognitionError(MusicError):
     """Raised when an error occurred while recognising music using ACRCloud API"""
-    logger.error("Can't recognize audio file in database")
+    def __init__(self, error):
+        self.message = f"Can't recognize audio file in database. Status: {error}"
+        logger.error(self.message)
+
+    def __str__(self):
+        return self.message
 
 
 class MusicUploadError(MusicError):
@@ -35,6 +40,14 @@ class MusicUploadError(MusicError):
 class MusicDeleteError(MusicError):
     """Raised when an error occurred while deleting music using ACRCloud API"""
     logger.error("Can't delete audio file from database")
+class MusicDuplicationError(MusicError):
+    """Raised when trying to upload a track that already exists to the database using ACRCloud API."""
+    def __init__(self):
+        self.message = f"Failed to upload song, it already exists in the database."
+        logger.error(self.message)
+
+    def __str__(self):
+        return self.message
 
 
 class MusicFileDoesNotExist(MusicDeleteError):
@@ -108,6 +121,26 @@ def upload_to_db(user_full_track: str, title: str, artist: str, album: str = 'Si
     return
 
 
+def upload_to_db_protected(user_full_track: str, title: str, artist: str, album: str = 'Single') -> None:
+    """
+    Upload an audio file to user music bucket.
+
+    :param user_full_track: Absolute path to the user audio file
+    :param title: Music Title
+    :param artist: Music Artist
+    :param album: Music Album
+    :exception MusicUploadError: The ACRCloud API encountered an error while uploading user's audio file
+    :return: None (Everything is fine)
+    """
+    db = get_files_in_db()
+    files_metadata = get_musical_metadata(db)
+    if title in files_metadata:
+        if artist in files_metadata[title]['artist']:
+            raise MusicDuplicationError()
+
+    _upload_to_db(user_full_track, title, artist, album)
+
+
 def get_files_in_db() -> dict:
     url = f"https://api-v2.acrcloud.com/api/buckets/{BUCKET_ID}/files"
 
@@ -154,7 +187,7 @@ def delete_from_db(title: str) -> None:
     :return: None (Everything is fine)
     """
     db = get_files_in_db()
-    files_in_db = get_ids_and_titles(db)
+    files_in_db = get_musical_metadata(db)
     if title in list(files_in_db):
         file_id = get_id_from_title(db, title)
         delete_id_from_db(file_id)
@@ -171,45 +204,55 @@ def delete_id_from_db_protected_for_web(file_id: int) -> None:
     :return: None (Everything is fine)
     """
     db = get_files_in_db()
-    files_in_db = get_ids_and_titles(db)
-    if file_id in list(files_in_db.values()):
+    files_metadata = get_musical_metadata(db)
+    if file_id in list(map(lambda metadata: metadata['id'], files_metadata.values())):
         delete_id_from_db(int(file_id))
     else:
         raise MusicFileDoesNotExist(f"{'files_in_db': files_in_db, 'entered_title': title}")
 
 
-def get_ids_and_titles(database: dict) -> dict:
+def get_musical_metadata(database: dict) -> dict:
+    """
+    Get the musical metadata of all tracks in database: title, album, artist, ACRCloud database ID
+    {song_title: {'id': id, 'artist': artist, 'album': album}, song_title_2: {'id': id, ...}, ...}
+    """
     titles_ids = dict()
     for track_num in range(len(database['data'])):
         file_title = database['data'][track_num]['title']
         file_id = database['data'][track_num]['id']
-        if titles_ids.get(file_title):
-            logger.warning(f"Database contains duplicate files titled '{file_title}'. Using ID: {file_id}.")
+        file_artist = database['data'][track_num]['user_defined']['artist']
+        file_album = database['data'][track_num]['user_defined']['album']
 
-        titles_ids[file_title] = file_id
+        titles_ids[file_title] = {
+            'id': file_id,
+            'artist': file_artist,
+            'album': file_album
+        }
 
     return titles_ids
 
 
 def get_id_from_title(database: dict, title: str) -> int:
-    db_ids_titles = get_ids_and_titles(database)
-    return int(db_ids_titles[title])
+    db_ids_titles = get_musical_metadata(database)
+    return int(db_ids_titles[title]['id'])
 
 
 def get_human_readable_db() -> list:
     """
-    Get the main metadata of all tracks in database: title, album, artist, ID in database
+    Get a list of all tracks in the database in a human-readable form (flattened json):
+    [{'title': title, 'album': album, 'artist': artist, 'id': ACRCloud database ID}, {'title': title_2, ...}, ...]
     """
-    full_db = get_files_in_db()
+    db = get_files_in_db()
+    musical_metadata = get_musical_metadata(db)
     readable_db = []
-    for track_num in range(len(full_db['data'])):
-        track_title = full_db['data'][track_num]['title']
-        track_album = full_db['data'][track_num]['user_defined'].get('album')
-        track_artist = full_db['data'][track_num]['user_defined'].get('artist')
-        track_id = full_db['data'][track_num]['id']
-        if track_title in [track['title'] for track in readable_db]:
-            logger.warning(f"Database contains duplicate files titled '{track_title}'.")
+    for title in musical_metadata:
+        readable_db.append(
+            {'title': title, 'album': musical_metadata[title]['album'],
+             'artist': musical_metadata[title]['artist'], 'id': musical_metadata[title]['id']}
+        )
 
-        readable_db.append({'title': track_title, 'album': track_album, 'artist': track_artist, 'id': track_id})
+    return readable_db
+
+
 
     return readable_db

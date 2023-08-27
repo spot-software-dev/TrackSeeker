@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request, abort
 from flask_cors import CORS, cross_origin
 from .logic import logic
-from .music_recognition import get_human_readable_db, upload_to_db, delete_id_from_db_protected_for_web
+from music_recognition import get_human_readable_db, upload_to_db_protected, delete_id_from_db_protected_for_web
 
 app = Flask(__name__)
 cors = CORS(app)
@@ -47,7 +47,7 @@ def upload_song():
     #     return jsonify(error="Missing required parameters."), 400
 
     try:
-        upload_to_db(user_full_track=track_path, title=title, artist=artist, album=album)
+        upload_to_db_protected(user_full_track=track_path, title=title, artist=artist, album=album)
         return jsonify(message="Song uploaded successfully.")
     except Exception as e:
         return jsonify(error=str(e)), 500

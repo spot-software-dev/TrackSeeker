@@ -1,5 +1,5 @@
 from logic import logic
-from music_recognition import get_human_readable_db, upload_to_db
+from music_recognition import get_human_readable_db, upload_to_db_protected
 
 
 def main():
@@ -11,7 +11,7 @@ def main():
         album = input("And what is the name of the album? ")
         artist = input("And finally by what artist? ")
         print("Thank you, the upload starts now. It might take a while.")
-        upload_to_db(file_path, title, artist, album)
+        upload_to_db_protected(file_path, title, artist, album)
         print(f"Great! Your track is now in the database:\n{get_human_readable_db()}")
     username = input("Enter the exact username of the wanted profile to check its stories: ")
     recognized_tracks = logic(username)

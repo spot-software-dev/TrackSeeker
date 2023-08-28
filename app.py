@@ -1,6 +1,6 @@
-from flask import Flask, jsonify, request, abort
+from flask import Flask, jsonify, request
 from flask_cors import CORS, cross_origin
-from .logic import logic
+from logic import logic, location_logic
 from music_recognition import get_human_readable_db, upload_to_db_protected, delete_id_from_db_protected_for_web
 
 app = Flask(__name__)
@@ -65,6 +65,21 @@ def delete_song():
     try:
         delete_id_from_db_protected_for_web(file_id)
         return jsonify(message="Song deleted successfully.")
+    except Exception as e:
+        return jsonify(error=str(e)), 500
+
+
+@app.route('/api/location_songs', methods=['POST'])
+def get_location_songs():
+    data = request.get_json()  # Retrieve data from the request body
+    location = data.get('location')
+    start_day, start_month, start_year = data.get('date').split('-')
+    if not all([start_day, start_month, start_year]):
+        return jsonify(error="Missing a date parameter ('start_day'/'start_month'/'start_year')."), 400
+    try:
+        recognized_songs_links = location_logic(location=location,
+                                                day=start_day, month=start_month, year=start_year)
+        return jsonify(recognized_songs_links)
     except Exception as e:
         return jsonify(error=str(e)), 500
 

@@ -2,8 +2,9 @@ import datetime
 import os.path
 
 from loguru import logger  # TODO: Add logging to logger and its tests
-from .instagram_bot import IGBOT, STORIES_DIR_PATH
-from .music_recognition import recognize, MusicRecognitionError
+from instagram_bot import IGBOT, STORIES_DIR_PATH
+from music_recognition import recognize, MusicRecognitionError, check_if_video_has_audio
+from drive_logic import Drive, clear_downloaded_stories_dir
 
 MAIN_DIR = os.path.dirname(os.path.abspath(__file__))
 date_now = datetime.date.today()
@@ -37,3 +38,30 @@ def logic(username: str) -> list:
             continue
 
     return recognised_tracks
+
+
+def location_logic(location: str,
+                   day: int = date_now.day, month: int = date_now.month, year: int = date_now.year,
+                   end_day: int = 0, end_month: int = 0, end_year: int = 0) -> list:
+    drive = Drive()
+    downloaded_files = drive.download_files(location=location,
+                                            start_day=day, end_day=end_day or day,
+                                            start_month=month, end_month=end_month or month,
+                                            start_year=year, end_year=end_year or year
+                                            )
+
+    recognized_stories = []
+    for file in downloaded_files:
+        if check_if_video_has_audio(file['path']):
+            result = recognize(file['path'])
+            if result:
+                drive_url = drive.get_file_link(file['id'])
+                logger.success(f"Recognized Song! In story ID: {file['id']}")
+                recognized_stories.append({'drive_url': drive_url, 'metadata': result})
+        else:
+            logger.debug(f'File {file["path"]} has no audio. Deleting file.')
+            os.remove(file['path'])
+
+    clear_downloaded_stories_dir()
+
+    return recognized_stories

@@ -87,7 +87,15 @@ CONFIG = {
 BUCKET_INTERACTION_TOKEN = os.environ.get('TEST_ALL_TOKEN', '')
 
 
-def recognize(recording_sample: str) -> bool or dict:
+def check_if_video_has_audio(video_path):
+    try:
+        video_clip = VideoFileClip(video_path)
+        has_audio = video_clip.audio is not None
+        video_clip.close()
+        return has_audio
+    except Exception as e:
+        logger.error(f"Couldn't find if the video {video_path} has audio. Error message: {e}")
+        raise e
     """
     Check if the recorded sample is present in the user database (the sample is cropped to the first 10 seconds)
     :param recording_sample: Path to local audio file

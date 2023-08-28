@@ -18,8 +18,12 @@ logger.add(os.path.join(MAIN_DIR, 'logs', 'music_recognition', f"music_recogniti
 
 class MusicError(OSError):
     """Raised when an error relating the ACRCloud API occurred"""
-    logger.debug(f"Debug info: Bucket ID: {BUCKET_ID}")  # TODO (low priority): Insert relevant data to log
-    pass
+    def __init__(self):
+        self.message = f"Debug info: Bucket ID: {BUCKET_ID}"
+        logger.debug(self.message)  # TODO (low priority): Insert relevant data to log
+
+    def __str__(self):
+        return self.message
 
 
 class MusicRecognitionError(MusicError):
@@ -34,12 +38,24 @@ class MusicRecognitionError(MusicError):
 
 class MusicUploadError(MusicError):
     """Raised when an error occurred while uploading music using ACRCloud API"""
-    logger.error("Can't upload audio file to database")
+    def __init__(self, error):
+        self.message = f"Can't upload audio file to database {error}"
+        logger.error(self.message)
+
+    def __str__(self):
+        return self.message
 
 
 class MusicDeleteError(MusicError):
     """Raised when an error occurred while deleting music using ACRCloud API"""
-    logger.error("Can't delete audio file from database")
+    def __init__(self):
+        self.message = "Can't delete audio file from database"
+        logger.error(self.message)
+
+    def __str__(self):
+        return self.message
+
+
 class MusicDuplicationError(MusicError):
     """Raised when trying to upload a track that already exists to the database using ACRCloud API."""
     def __init__(self):
@@ -52,7 +68,12 @@ class MusicDuplicationError(MusicError):
 
 class MusicFileDoesNotExist(MusicDeleteError):
     """Raised when the title entered for deletion does not exist in the database"""
-    logger.error("File does not exist in the database")
+    def __init__(self, error):
+        self.message = f"File does not exist in the database {error}"
+        logger.error(self.message)
+
+    def __str__(self):
+        return self.message
 
 
 CONFIG = {

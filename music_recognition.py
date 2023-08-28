@@ -115,6 +115,7 @@ def check_if_video_has_audio(video_path):
 
 
 def upload_to_db(user_full_track: str, title: str, artist: str, album: str = 'Single') -> None:
+def _upload_to_db(user_full_track: str, title: str, artist: str, album: str = 'Single') -> None:
     """
     Upload an audio file to user music bucket.
 
@@ -221,7 +222,7 @@ def delete_from_db(title: str) -> None:
         file_id = get_id_from_title(db, title)
         delete_id_from_db(file_id)
     else:
-        raise MusicFileDoesNotExist(f"{'files_in_db': files_in_db, 'entered_title': title}")
+        raise MusicFileDoesNotExist(f"Entered file title: {title}")
 
 
 def delete_id_from_db_protected_for_web(file_id: int) -> None:

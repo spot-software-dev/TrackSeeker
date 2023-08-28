@@ -2,6 +2,7 @@ from loguru import logger
 import requests
 import datetime
 import subprocess
+from moviepy.editor import VideoFileClip
 from acrcloud.recognizer import ACRCloudRecognizer
 from dotenv.main import load_dotenv
 import os
@@ -10,7 +11,6 @@ import json
 load_dotenv()
 
 BUCKET_ID = 20149
-MAIN_DIR = path.dirname(path.abspath(__file__))
 MAIN_DIR = os.path.dirname(os.path.abspath(__file__))
 date_now = datetime.date.today()
 logger.add(os.path.join(MAIN_DIR, 'logs', 'music_recognition', f"music_recognition_{date_now}.log"), rotation="1 day")
@@ -96,6 +96,9 @@ def check_if_video_has_audio(video_path):
     except Exception as e:
         logger.error(f"Couldn't find if the video {video_path} has audio. Error message: {e}")
         raise e
+
+
+def recognize(recording_sample: str, **kwargs) -> bool or dict:
     """
     Check if the recorded sample is present in the user database (the sample is cropped to the first 10 seconds)
     :param recording_sample: Path to local audio file
@@ -110,11 +113,23 @@ def check_if_video_has_audio(video_path):
         return answer['metadata']['custom_files']
     elif answer['status']['msg'] == 'No result':
         return False
+    elif answer['status']['msg'] == 'May Be Mute':
+        logger.debug(f"Can't recognize file, it may be mute, deleting file.")
+        os.remove(recording_sample)
+        return False
+    elif answer['status']['msg'] == 'Decode Audio Error':
+        _retries = kwargs.get('_retries', 0)
+        if _retries == 3:
+            logger.warning("Could not decode the audio, deleting file")
+            os.remove(recording_sample)
+            return False
+        _retries += 1
+        logger.info('Retrying to recognize file...')
+        return recognize(recording_sample, _retries=_retries)
     else:
         raise MusicRecognitionError(answer['status'])
 
 
-def upload_to_db(user_full_track: str, title: str, artist: str, album: str = 'Single') -> None:
 def _upload_to_db(user_full_track: str, title: str, artist: str, album: str = 'Single') -> None:
     """
     Upload an audio file to user music bucket.

@@ -2,9 +2,9 @@ import datetime
 import os.path
 
 from loguru import logger  # TODO: Add logging to logger and its tests
-from instagram_bot import IGBOT, STORIES_DIR_PATH
-from music_recognition import recognize, MusicRecognitionError, check_if_video_has_audio
-from drive_logic import Drive, clear_downloaded_stories_dir
+from .instagram_bot import IGBOT, STORIES_DIR_PATH
+from .music_recognition import recognize, MusicRecognitionError, check_if_video_has_audio
+from .drive_logic import Drive, clear_downloaded_stories_dir
 
 MAIN_DIR = os.path.dirname(os.path.abspath(__file__))
 date_now = datetime.date.today()

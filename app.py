@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS, cross_origin
-from logic import logic, location_logic
-from music_recognition import get_human_readable_db, upload_to_db_protected, delete_id_from_db_protected_for_web
+from .logic import logic, location_logic
+from .music_recognition import get_human_readable_db, upload_to_db_protected, delete_id_from_db_protected_for_web
 
 app = Flask(__name__)
 cors = CORS(app)
@@ -78,7 +78,7 @@ def get_location_songs():
         return jsonify(error="Missing a date parameter ('start_day'/'start_month'/'start_year')."), 400
     try:
         recognized_songs_links = location_logic(location=location,
-                                                day=start_day, month=start_month, year=start_year)
+                                                day=int(start_day), month=int(start_month), year=int(start_year))
         return jsonify(recognized_songs_links)
     except Exception as e:
         return jsonify(error=str(e)), 500

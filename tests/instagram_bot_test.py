@@ -57,6 +57,6 @@ def test_download_user_stories(bot, setup):
 
 
 def test_get_audio_urls_from_post_location_id(bot):
-    location_audios = bot.get_audio_urls_from_post_location_id(1977542)  # Location ID of Beit Haamudim
+    location_audios = bot.get_audio_urls_from_post_location_id(1977542)  # Location ID of "Beit Haamudim"
     first_url = list(location_audios.values())[0][0]
     assert first_url.startswith("https://instagram")

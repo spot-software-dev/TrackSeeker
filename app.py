@@ -43,8 +43,8 @@ def upload_song():
     artist = data.get("artist")
     album = data.get("album")
     
-    # if not all([track_path, title, artist, album]):
-    #     return jsonify(error="Missing required parameters."), 400
+    if not all([track_path, title, artist]):
+        return jsonify(error="Missing required parameters."), 400
 
     try:
         upload_to_db_protected(user_full_track=track_path, title=title, artist=artist, album=album)

@@ -54,3 +54,13 @@ def test_get_files_at_date_in_folder(drive):
                                                     day=DATE.day)
     for file in drive_files:
         assert str(DATE) in file['name']
+
+
+def test_get_download_link(drive):
+    drive_location_folder_id = drive.get_location_directory(LOCATION)
+    drive_files = drive.get_files_at_date_in_folder(folder_id=drive_location_folder_id,
+                                                    year=DATE.year,
+                                                    month=DATE.month,
+                                                    day=DATE.day)
+    link = drive.get_download_link(drive_files[0]['id'])
+    assert url_validator(link)

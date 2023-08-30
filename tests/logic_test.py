@@ -35,4 +35,6 @@ def test_location_logic():
     recognized_stories = location_logic(location=LOCATION2, day=26)
     print(f"Recognized Stories: {recognized_stories}")
     first_story_url = recognized_stories[0]['drive_url']
+    first_story_download_url = recognized_stories[0]['download_url']
     assert url_validator(first_story_url)
+    assert url_validator(first_story_download_url)

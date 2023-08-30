@@ -56,8 +56,9 @@ def location_logic(location: str,
             result = recognize(file['path'])
             if result:
                 drive_url = drive.get_file_link(file['id'])
+                download_url = drive.get_download_link(file['id'])
                 logger.success(f"Recognized Song! In story ID: {file['id']}")
-                recognized_stories.append({'drive_url': drive_url, 'metadata': result})
+                recognized_stories.append({'drive_url': drive_url, 'download_url': download_url, 'metadata': result})
         else:
             logger.debug(f'File {file["path"]} has no audio. Deleting file.')
             os.remove(file['path'])

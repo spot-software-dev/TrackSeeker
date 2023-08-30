@@ -217,3 +217,12 @@ class Drive:
             downloaded_files.append({'id': file['id'], 'path': self._download(file['id'], file['name'])})
 
         return downloaded_files
+
+    def get_download_link(self, file_id: str):
+        """Get the url link to download the file from drive"""
+        logger.debug('Getting download link...')
+        service = build(API_NAME, API_VERSION, credentials=self.creds)
+        file_metadata = service.files().get(fileId=file_id, fields='webContentLink').execute()
+        download_link = file_metadata.get('webContentLink')
+        logger.success(f"Successfully got download link")
+        return download_link

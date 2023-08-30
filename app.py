@@ -1,7 +1,9 @@
+import time
 from flask import Flask, jsonify, request
 from flask_cors import CORS, cross_origin
 from .logic import logic, location_logic
 from .music_recognition import get_human_readable_db, upload_to_db_protected, delete_id_from_db_protected_for_web
+from .story_story_logic import StoryStorySession
 
 app = Flask(__name__)
 cors = CORS(app)
@@ -82,6 +84,19 @@ def get_location_songs():
         return jsonify(recognized_songs_links)
     except Exception as e:
         return jsonify(error=str(e)), 500
+
+
+@app.route('/api/locations', methods=['POST'])
+def get_locations():
+    data = request.get_json()
+    dashboard = data.get('dashboard')
+    try:
+        storystory_session = StoryStorySession()
+        time.sleep(0.5)
+        locations = storystory_session.get_instagram_followed_locations_and_dates(dashboard_name=dashboard)
+    except Exception as e:
+        return jsonify(error=str(e)), 500
+    return jsonify(locations)
 
 
 if __name__ == '__main__':

@@ -1,7 +1,7 @@
 import pytest
 import os.path
 import datetime
-from tests.test_tools import url_validator
+from tests.test_tools import url_validator, date_validator
 from drive_logic import Drive, DriveLocationNotFound
 
 LOCATION = 'selina mantur'
@@ -64,3 +64,8 @@ def test_get_download_link(drive):
                                                     day=DATE.day)
     link = drive.get_download_link(drive_files[0]['id'])
     assert url_validator(link)
+
+
+def test_get_location_dates(drive):
+    location_dates = drive.get_location_dates(LOCATION)
+    assert date_validator(location_dates[0])

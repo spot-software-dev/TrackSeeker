@@ -226,3 +226,36 @@ class Drive:
         download_link = file_metadata.get('webContentLink')
         logger.success(f"Successfully got download link")
         return download_link
+
+    def _get_files_in_folder(self, folder_id: str):
+        """Get all files in folder"""
+        service = build(API_NAME, API_VERSION, credentials=self.creds)
+
+        results = []
+        page_token = None
+
+        while True:
+            response = service.files().list(q=f"'{folder_id}' in parents",
+                                            spaces='drive',
+                                            fields='nextPageToken, files(id, name)',
+                                            pageToken=page_token).execute()
+
+            files = response.get('files', [])
+            results.extend(files)
+
+            page_token = response.get('nextPageToken', None)
+            if page_token is None:
+                break
+
+        return results
+
+    def get_location_dates(self, location: str) -> list:
+        """Get location present stories dates"""
+        folder_id = self.get_location_directory(location=location)
+        drive_files = self._get_files_in_folder(folder_id)
+        location_dates = set()
+        for file in drive_files:
+            file_date = file['name'].split('T')[0]
+            location_dates.add(file_date)
+
+        return sorted(list(location_dates))

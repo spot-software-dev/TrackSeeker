@@ -1,4 +1,5 @@
 import re
+import datetime
 
 def url_validator(url: str) -> bool:
     """Validate URL is valid (not broken)."""
@@ -11,3 +12,11 @@ def url_validator(url: str) -> bool:
         r'(?:/?|[/?]\S+)$', re.IGNORECASE)
 
     return re.match(regex, url) is not None
+
+
+def date_validator(date_string):
+    try:
+        datetime.datetime.strptime(date_string, '%Y-%m-%d')
+        return True
+    except ValueError:
+        return False

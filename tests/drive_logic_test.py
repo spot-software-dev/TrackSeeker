@@ -24,11 +24,11 @@ def test_download_files(drive):
 
 def test_non_existent_location(drive):
     with pytest.raises(DriveLocationNotFound):
-        _ = drive.get_location_directory(similar_name=NON_EXISTENT_LOCATION)
+        _ = drive.get_location_directory(location=NON_EXISTENT_LOCATION)
 
 
 def test_get_file_link(drive):
-    drive_files = drive.get_files(similar_name=LOCATION,
+    drive_files = drive.get_files(location=LOCATION,
                                   start_year=DATE.year, end_year=DATE.year,
                                   start_month=DATE.month, end_month=DATE.month,
                                   start_day=DATE.day, end_day=DATE.day)
@@ -38,7 +38,7 @@ def test_get_file_link(drive):
 
 
 def test_get_files(drive):
-    drive_files = drive.get_files(similar_name=LOCATION,
+    drive_files = drive.get_files(location=LOCATION,
                                   start_year=DATE.year, end_year=DATE.year,
                                   start_month=DATE.month, end_month=DATE.month,
                                   start_day=DATE.day, end_day=DATE.day + 1)

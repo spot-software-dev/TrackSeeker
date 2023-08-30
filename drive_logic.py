@@ -87,9 +87,8 @@ class Drive:
             with open(token_path, 'w') as token:
                 token.write(self.creds.to_json())
 
-    def get_location_directory(self, similar_name: str) -> str:
-        keyword = similar_name
-        query = f"name contains '{keyword}' and mimeType = 'application/vnd.google-apps.folder'"
+    def get_location_directory(self, location: str) -> str:
+        query = f"fullText contains \"'{location}_'\" and mimeType = 'application/vnd.google-apps.folder'"
 
         service = build(API_NAME, API_VERSION, credentials=self.creds)
         results = service.files().list(q=query).execute()
@@ -104,7 +103,7 @@ class Drive:
                 location_directory.append(folder['id'])
                 logger.debug(f'Found folder with the name: {folder["name"]} and the ID: {folder["id"]}')
             if len(location_directory) > 1:
-                raise DriveMultipleFolders(folders, similar_name)
+                raise DriveMultipleFolders(folders, location)
             return location_directory[0]
 
     def get_files_at_date_in_folder(self,
@@ -146,7 +145,7 @@ class Drive:
         logger.info(f'Files in Drive for day {date}: {files}')
         return files
 
-    def get_files(self, similar_name: str,
+    def get_files(self, location: str,
                   start_year: int, start_month: int, start_day: int,
                   end_year: int, end_month: int, end_day: int) -> list:
         """
@@ -159,7 +158,7 @@ class Drive:
         current_date = start_date
         files = []
 
-        folder_id = self.get_location_directory(similar_name)
+        folder_id = self.get_location_directory(location)
 
         while current_date <= end_date:
             files.extend(self.get_files_at_date_in_folder(folder_id=folder_id,
@@ -210,7 +209,7 @@ class Drive:
     def download_files(self, location: str, start_year: int, start_month: int, start_day: int,
                        end_year: int, end_month: int, end_day: int) -> list:
         """Download video files from Drive in the time specified."""
-        drive_files = self.get_files(similar_name=location,
+        drive_files = self.get_files(location=location,
                                      start_year=start_year, start_month=start_month, start_day=start_day,
                                      end_year=end_year, end_month=end_month, end_day=end_day)
         downloaded_files = []

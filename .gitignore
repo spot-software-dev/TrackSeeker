@@ -23,6 +23,11 @@ docs/_build/
 .__pycache__
 logs
 
+# local files
+credentials.json
+token.json
+DownloadedStories
+
 # Coverage reports
 htmlcov/
 .coverage

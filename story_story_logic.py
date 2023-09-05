@@ -69,8 +69,12 @@ class StoryStorySession:
         driver_path = r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"
         website_url = "https://app.story-story.co"
 
+        # Make selenium run without web-display
+        options = webdriver.ChromeOptions()
+        options.add_argument('headless')
+
         # Create a webdriver instance
-        self.driver = webdriver.Chrome()
+        self.driver = webdriver.Chrome(options=options)
 
         # Open the website
         self.driver.get(website_url)

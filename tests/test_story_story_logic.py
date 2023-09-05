@@ -11,7 +11,7 @@ def test_get_instagram_locations():
     locations = session.get_instagram_followed_locations_and_dates(NAME)
     assert len(locations) > 2
     assert type(locations[0]['name']) is str
-    assert len(locations[0]['dates']) > 1
+    assert len(locations[0]['location_dates']) > 1
 
 
 def test_add_location():

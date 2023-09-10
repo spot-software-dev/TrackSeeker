@@ -3,25 +3,17 @@ import time
 from flask import Flask, jsonify, request, render_template
 from flask_cors import CORS, cross_origin
 from flask_mail import Mail, Message
+from .config import Config
 from .logic import logic, location_logic
 from .music_recognition import get_human_readable_db, upload_to_db_protected, delete_id_from_db_protected_for_web
 from .story_story_logic import StoryStorySession
 
 app = Flask(__name__)
 
-# Configuration for Flask-Mail
-app.config['MAIL_SERVER'] = os.environ['EMAIL_HOST'] # Your SMTP server
-app.config['MAIL_PORT'] = os.environ['EMAIL_PORT']  
-app.config['MAIL_USE_TLS'] = False
-app.config['MAIL_USE_SSL'] = True
-app.config['MAIL_USERNAME'] = os.environ['EMAIL_USERNAME']
-app.config['MAIL_PASSWORD'] = os.environ['EMAIL_PASSWORD']
-app.config['MAIL_DEFAULT_SENDER'] = os.environ['EMAIL_ADDRESS'] # Set the default sender's email address
+app.config.from_object(Config)
+
 mail = Mail(app)
-
-app.config['CORS_HEADERS'] = 'Content-Type'
 cors = CORS(app)
-
 
 @app.route('/api/data', methods=['GET'])
 def get_data():
@@ -127,7 +119,7 @@ def send_email():
 
     try:
         mail.send(msg)
-        return jsonify(message="Email was sent!")
+        return jsonify(message="Email was sent successfully!")
     except Exception as e:
         return jsonify(error=str(e)), 500
 

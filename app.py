@@ -1,13 +1,26 @@
+import os
 import time
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, render_template
 from flask_cors import CORS, cross_origin
+from flask_mail import Mail, Message
 from .logic import logic, location_logic
 from .music_recognition import get_human_readable_db, upload_to_db_protected, delete_id_from_db_protected_for_web
 from .story_story_logic import StoryStorySession
 
 app = Flask(__name__)
-cors = CORS(app)
+
+# Configuration for Flask-Mail
+app.config['MAIL_SERVER'] = os.environ['EMAIL_HOST'] # Your SMTP server
+app.config['MAIL_PORT'] = os.environ['EMAIL_PORT']  
+app.config['MAIL_USE_TLS'] = False
+app.config['MAIL_USE_SSL'] = True
+app.config['MAIL_USERNAME'] = os.environ['EMAIL_USERNAME']
+app.config['MAIL_PASSWORD'] = os.environ['EMAIL_PASSWORD']
+app.config['MAIL_DEFAULT_SENDER'] = os.environ['EMAIL_ADDRESS'] # Set the default sender's email address
+mail = Mail(app)
+
 app.config['CORS_HEADERS'] = 'Content-Type'
+cors = CORS(app)
 
 
 @app.route('/api/data', methods=['GET'])
@@ -97,6 +110,27 @@ def get_locations():
     except Exception as e:
         return jsonify(error=str(e)), 500
     return jsonify(locations)
+
+
+@app.route('/api/send_location_email', methods=['POST'])
+def send_email():
+    data = request.get_json()
+    recipients = data.get('recipients')
+    subject = f"New Location Request! from {data.get('fullname')}"
+    message_body = render_template('email_template.html', subject=subject, fullname=data.get('fullname'), email=data.get('email'), locationWanted=data.get('locationWanted'))
+    
+    if not recipients or not isinstance(recipients, list):
+        return jsonify(error="Invalid recipients data, should send an array."), 400
+
+    msg = Message(subject=subject, recipients=recipients)
+    msg.html = message_body
+
+    try:
+        mail.send(msg)
+        return jsonify(message="Email was sent!")
+    except Exception as e:
+        return jsonify(error=str(e)), 500
+
 
 
 if __name__ == '__main__':

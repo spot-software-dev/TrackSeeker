@@ -39,17 +39,16 @@ def get_database_songs():
 
 @app.route('/api/upload_song', methods=['POST'])
 def upload_song():
-    data = request.get_json()
-    track_path = data.get("track_path")
-    title = data.get("title")
-    artist = data.get("artist")
-    album = data.get("album")
+    audio_file = request.files.get("file")
+    title = request.form.get("title")
+    artist = request.form.get("artist")
+    album = request.form.get("album")
     
-    if not all([track_path, title, artist]):
+    if not all([audio_file, title, artist]):
         return jsonify(error="Missing required parameters."), 400
 
     try:
-        upload_to_db_protected(user_full_track=track_path, title=title, artist=artist, album=album)
+        upload_to_db_protected(audio_file=audio_file, title=title, artist=artist, album=album)
         return jsonify(message="Song uploaded successfully.")
     except Exception as e:
         return jsonify(error=str(e)), 500

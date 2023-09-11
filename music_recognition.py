@@ -6,7 +6,9 @@ from moviepy.editor import VideoFileClip
 from acrcloud.recognizer import ACRCloudRecognizer
 from dotenv.main import load_dotenv
 import os
+from io import BytesIO
 import json
+from werkzeug.utils import secure_filename
 
 load_dotenv()
 
@@ -130,11 +132,11 @@ def recognize(recording_sample: str, **kwargs) -> bool or dict:
         raise MusicRecognitionError(answer['status'])
 
 
-def _upload_to_db(user_full_track: str, title: str, artist: str, album: str = 'Single') -> None:
+def _upload_to_db(audio_file: BytesIO, title: str, artist: str, album: str = 'Single') -> None:
     """
     Upload an audio file to user music bucket.
 
-    :param user_full_track: Absolute path to the user audio file
+    :param audio_file: user audio file
     :param title: Music Title
     :param artist: Music Artist
     :param album: Music Album
@@ -143,47 +145,51 @@ def _upload_to_db(user_full_track: str, title: str, artist: str, album: str = 'S
     """
     url = f"https://api-v2.acrcloud.com/api/buckets/{BUCKET_ID}/files"
 
-    payload = {'title': title, 'data_type': 'audio',
+    payload = {'title': title or os.path.splitext(secure_filename(audio_file.filename))[0]
+, 'data_type': 'audio',
                "user_defined": json.dumps({"artist": artist, 'album': album})}
     files = [
-        ('file', (os.path.split(user_full_track)[-1], open(user_full_track, 'rb'), 'audio/mpeg'))
+        ('file', (secure_filename(audio_file.filename), audio_file, 'audio/mpeg'))
     ]
     headers = {
         'Accept': 'application/json',
         'Authorization': f'Bearer {BUCKET_INTERACTION_TOKEN}'
     }
 
-    logger.info(f"Uploading file in {user_full_track}")
-    response = requests.request("POST", url,
-                                headers=headers,
-                                data=payload,
-                                files=files)
-    logger.info(f"Done uploading file in {user_full_track}")
-    answer = json.loads(response.text)
-    if answer.get('error'):
-        raise MusicUploadError(response.text)
+    logger.info(f"Uploading file")
+    try:
+        response = requests.post(url, headers=headers, data=payload, files=files)
+        logger.info(f"Done uploading file")
+        
+        answer = response.json()
+        if answer.get('error'):
+            raise MusicUploadError(answer['error']['message'])
+    
+    except requests.RequestException as e:
+        raise MusicUploadError(str(e))
 
     return
 
 
-def upload_to_db_protected(user_full_track: str, title: str, artist: str, album: str = 'Single') -> None:
+def upload_to_db_protected(audio_file: BytesIO, title: str, artist: str, album: str = 'Single') -> None:
     """
     Upload an audio file to user music bucket.
 
-    :param user_full_track: Absolute path to the user audio file
+    :param audio_file: user audio file
     :param title: Music Title
     :param artist: Music Artist
     :param album: Music Album
     :exception MusicUploadError: The ACRCloud API encountered an error while uploading user's audio file
     :return: None (Everything is fine)
     """
+    logger.info("Before uploading")
     db = get_files_in_db()
     files_metadata = get_musical_metadata(db)
     if title in files_metadata:
         if artist in files_metadata[title]['artist']:
             raise MusicDuplicationError()
 
-    _upload_to_db(user_full_track, title, artist, album)
+    _upload_to_db(audio_file, title, artist, album)
 
 
 def get_files_in_db() -> dict:

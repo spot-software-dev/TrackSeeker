@@ -1,12 +1,17 @@
 import os
+import io
 import pytest
-from music_recognition import recognize, get_files_in_db, upload_to_db_protected, delete_id_from_db
-from music_recognition import get_id_from_title, get_musical_metadata, MusicRecognitionError, get_human_readable_db
-from music_recognition import delete_from_db, delete_id_from_db_protected_for_web, MusicDuplicationError
+from ..music_recognition import recognize, get_files_in_db, upload_to_db_protected, delete_id_from_db
+from ..music_recognition import get_id_from_title, get_musical_metadata, MusicRecognitionError, get_human_readable_db
+from ..music_recognition import delete_from_db, delete_id_from_db_protected_for_web, MusicDuplicationError
 
 DIR_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'media')
+
 TEST_TRACKS_IN_DB = ['intro + sound the system', 'Alawan', 'Red Samba', 'Billie Jean']
 
+TEST_FILE_CONTENT = open(os.path.join(DIR_PATH, 'Raggae_Soundsystem_intro.mp3'), 'rb').read()
+TEST_UPLOADED_FILE = io.BytesIO(TEST_FILE_CONTENT)
+TEST_UPLOADED_FILE.filename = 'Raggae_Soundsystem_intro.mp3'  # Set the filename attribute
 
 @pytest.fixture()
 def cleanup():
@@ -58,7 +63,7 @@ def test_upload_to_db_protected(cleanup):
     db_start = get_files_in_db()
     added_track_title = 'intro + sound the system'
     upload_to_db_protected(
-        os.path.join(DIR_PATH, 'Raggae_Soundsystem_intro.mp3'),
+        TEST_UPLOADED_FILE,
         title=added_track_title,
         artist='Jenja & The Band'
     )
@@ -74,14 +79,14 @@ def test_upload_to_db_protected(cleanup):
 def test_upload_to_db_duplicate_error(cleanup):
     added_track_title = 'intro + sound the system'
     upload_to_db_protected(
-        os.path.join(DIR_PATH, 'Raggae_Soundsystem_intro.mp3'),
+        TEST_UPLOADED_FILE,
         title=added_track_title,
         artist='Jenja & The Band'
     )
 
     with pytest.raises(MusicDuplicationError):
         upload_to_db_protected(
-            os.path.join(DIR_PATH, 'Raggae_Soundsystem_intro.mp3'),
+            TEST_UPLOADED_FILE,
             title=added_track_title,
             artist='Jenja & The Band'
         )
@@ -112,7 +117,7 @@ def test_get_human_readable_db():
 def test_delete_from_db(cleanup):   
     added_track_title = 'intro + sound the system'
     upload_to_db_protected(
-        os.path.join(DIR_PATH, 'Raggae_Soundsystem_intro.mp3'),
+        TEST_UPLOADED_FILE,
         title=added_track_title,
         artist='Jenja & The Band'
     )
@@ -126,7 +131,7 @@ def test_delete_from_db(cleanup):
 def test_delete_id_from_db_protected_for_web(cleanup):
     added_track_title = 'intro + sound the system'
     upload_to_db_protected(
-        os.path.join(DIR_PATH, 'Raggae_Soundsystem_intro.mp3'),
+        TEST_UPLOADED_FILE,
         title=added_track_title,
         artist='Jenja & The Band'
     )

@@ -3,6 +3,7 @@ import os.path
 import datetime
 import io
 import shutil
+from moviepy.editor import VideoFileClip
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -56,6 +57,15 @@ class DriveLocationNotFound(DriveError):
     def __init__(self):
         self.message = "Didn't find any folders for the specified location-folder"
         logger.error(self.message)
+
+    def __str__(self):
+        return self.message
+
+
+class DriveShareableLinkError(DriveError):
+    """Raised when could not make file's Drive link shareable."""
+    def __init__(self):
+        self.message = "Error: Unable to make the link shareable."
 
     def __str__(self):
         return self.message
@@ -175,6 +185,21 @@ class Drive:
 
         return files
 
+    def _make_link_shareable(self, file_id: str) -> None:
+        """
+        Make link shareable.
+        :exception: DriveShareableLinkError: Unable to make the Drive file link shareable
+        """
+        # Create a permission for "Anyone with the link" with view access
+        permission = {
+            'type': 'anyone',
+            'role': 'reader',
+        }
+        # Update the file's permissions
+        service = build(API_NAME, API_VERSION, credentials=self.creds)
+        service.permissions().create(fileId=file_id, body=permission).execute()
+        logger.info(f"The file at 'https://drive.google.com/uc?id={file_id}' is now shareable by anyone with the link.")
+
     @staticmethod
     def get_file_link(file_id: str) -> str:
         return f"https://drive.google.com/uc?id={file_id}"
@@ -212,6 +237,45 @@ class Drive:
         except Exception as e:
             raise DriveDownloadError(e)
 
+    @staticmethod
+    def _download_audio(file_url: str, file_name: str) -> str or None:
+        """
+        Download the specified file as audio to the Downloaded Stories folder and name it.
+        :param file_url: Google Drive file url.
+        :param file_name: The name that the downloaded file will have.
+        :return: Absolute path to the downloaded file
+        """
+        try:
+            # Create a VideoFileClip object
+            video_clip = VideoFileClip(file_url)
+        except OSError as e:
+            if "MoviePy error: failed to read the first frame of video file" in str(e):
+                logger.debug("File might be corrupted, skipping file.")
+                return
+            elif "Server returned 403 Forbidden (access denied)" in str(e):
+                logger.debug("Cannot access file right now, skipping file...")
+                return
+            else:
+                raise e
+
+        # Extract audio from the video
+        audio_clip = video_clip.audio
+        if not audio_clip:
+            return
+
+        cleaned_file_name = file_name.replace(':', '-')
+        cleaned_file_name_mp3 = f"{os.path.splitext(cleaned_file_name)[0]}.mp3"
+        output_audio_file_name = os.path.join(DOWNLOADED_STORIES_DIR, cleaned_file_name_mp3)
+
+        # Save the audio to a file
+        audio_clip.write_audiofile(output_audio_file_name)
+
+        # Close the clips
+        audio_clip.close()
+        video_clip.close()
+
+        return output_audio_file_name
+
     def download_files(self, location: str, start_year: int, start_month: int, start_day: int,
                        end_year: int, end_month: int, end_day: int) -> list:
         """Download video files from Drive in the time specified."""
@@ -220,7 +284,11 @@ class Drive:
                                      end_year=end_year, end_month=end_month, end_day=end_day)
         downloaded_files = []
         for file in drive_files:
-            downloaded_files.append({'id': file['id'], 'path': self._download(file['id'], file['name'])})
+            file_url = self.get_file_link(file['id'])
+            self._make_link_shareable(file['id'])
+            downloaded_file_path = self._download_audio(file_url, file['name'])
+            if downloaded_file_path:
+                downloaded_files.append({'id': file['id'], 'path': downloaded_file_path})
 
         return downloaded_files
 

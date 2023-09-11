@@ -13,6 +13,7 @@ from werkzeug.utils import secure_filename
 load_dotenv()
 
 BUCKET_ID = 20149
+CONTAINER_ID = os.environ.get('CONTAINER_ID', '')
 MAIN_DIR = os.path.dirname(os.path.abspath(__file__))
 date_now = datetime.date.today()
 logger.add(os.path.join(MAIN_DIR, 'logs', 'music_recognition', f"music_recognition_{date_now}.log"), rotation="1 day")
@@ -304,3 +305,53 @@ def get_human_readable_db() -> list:
         )
 
     return readable_db
+
+
+def add_to_container_recognizer(link: str) -> dict:
+    """
+    Add file to the container recognizer.
+    """
+    import requests
+
+    url = f"https://api-v2.acrcloud.com/api/fs-containers/{CONTAINER_ID}/files"
+
+    payload = {
+        'data_type': 'platforms',
+        'url': link
+    }
+
+    headers = {
+        'Accept': 'application/json',
+        'Authorization': f'Bearer {BUCKET_INTERACTION_TOKEN}',
+        'Content-Type': 'application/json'
+    }
+
+    response = requests.request("POST", url, headers=headers, json=payload)
+
+    if response.status_code in [200, 201]:
+        logger.success(f"Uploaded {link} to container ID {CONTAINER_ID}")
+        return response.json()
+    else:
+        logger.error(f"Upload to container failed with status code:\n{response.status_code}")
+        raise MusicRecognitionError(response.text)
+
+
+def list_container_files_and_results():
+    import requests
+
+    url = f"https://api-v2.acrcloud.com/api/fs-containers/{CONTAINER_ID}/files?page=1&per_page=20"
+
+    payload = {}
+    headers = {
+        'Accept': 'application/json',
+        'Authorization': f'Bearer {BUCKET_INTERACTION_TOKEN}'
+    }
+
+    response = requests.request("GET", url, headers=headers, data=payload)
+
+    if response.status_code == 200:
+        logger.info(f"Files in container ID {CONTAINER_ID}:\n{response.text}")
+        return response.json()
+    else:
+        logger.error(f"Upload to container failed with status code:\n{response.status_code}")
+        raise MusicRecognitionError(response.text)

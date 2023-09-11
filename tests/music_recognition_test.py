@@ -8,6 +8,7 @@ from ..music_recognition import delete_from_db, delete_id_from_db_protected_for_
 DIR_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'media')
 
 TEST_TRACKS_IN_DB = ['intro + sound the system', 'Alawan', 'Red Samba', 'Billie Jean']
+TEST_TRACK_LINK = 'https://drive.google.com/file/d/1LwTsb1fsXpT9TkWcMAWWboxoF5kqcSzA/view?usp=sharing'
 
 TEST_FILE_CONTENT = open(os.path.join(DIR_PATH, 'Raggae_Soundsystem_intro.mp3'), 'rb').read()
 TEST_UPLOADED_FILE = io.BytesIO(TEST_FILE_CONTENT)
@@ -152,3 +153,14 @@ def test_delete_id_from_db_protected_for_web(cleanup):
     db_after_delete = get_files_in_db()
     assert db_after_delete != db_before_delete
     assert added_track_title not in db_after_delete
+
+
+def test_list_container_files_and_results():
+    results = list_container_files_and_results()
+    assert issubclass(type(results), dict)
+
+
+def test_add_to_container_recognizer():
+    response = add_to_container_recognizer(TEST_TRACK_LINK)
+    time.sleep(5)
+    assert list_container_files_and_results()['data']

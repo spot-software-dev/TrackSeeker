@@ -1,4 +1,3 @@
-import os
 import time
 from flask import Flask, jsonify, request, render_template
 from flask_cors import CORS, cross_origin
@@ -121,7 +120,6 @@ def send_email():
         return jsonify(message="Email was sent successfully!")
     except Exception as e:
         return jsonify(error=str(e)), 500
-
 
 
 if __name__ == '__main__':

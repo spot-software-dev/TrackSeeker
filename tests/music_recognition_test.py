@@ -2,7 +2,7 @@ import os
 import io
 import pytest
 from ..music_recognition import recognize, get_files_in_db, upload_to_db_protected, delete_id_from_db
-from ..music_recognition import get_id_from_title, get_musical_metadata, MusicRecognitionError, get_human_readable_db
+from ..music_recognition import get_id_from_title, get_musical_metadata, get_human_readable_db
 from ..music_recognition import delete_from_db, delete_id_from_db_protected_for_web, MusicDuplicationError
 
 DIR_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'media')

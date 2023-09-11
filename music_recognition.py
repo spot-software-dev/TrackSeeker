@@ -132,6 +132,7 @@ def recognize(recording_sample: str, **kwargs) -> bool or dict:
         raise MusicRecognitionError(answer['status'])
 
 
+# noinspection PyUnresolvedReferences
 def _upload_to_db(audio_file: BytesIO, title: str, artist: str, album: str = 'Single') -> None:
     """
     Upload an audio file to user music bucket.
@@ -145,8 +146,8 @@ def _upload_to_db(audio_file: BytesIO, title: str, artist: str, album: str = 'Si
     """
     url = f"https://api-v2.acrcloud.com/api/buckets/{BUCKET_ID}/files"
 
-    payload = {'title': title or os.path.splitext(secure_filename(audio_file.filename))[0]
-, 'data_type': 'audio',
+    payload = {'title': title or os.path.splitext(secure_filename(audio_file.filename))[0],
+               'data_type': 'audio',
                "user_defined": json.dumps({"artist": artist, 'album': album})}
     files = [
         ('file', (secure_filename(audio_file.filename), audio_file, 'audio/mpeg'))
@@ -301,9 +302,5 @@ def get_human_readable_db() -> list:
             {'title': title, 'album': musical_metadata[title]['album'],
              'artist': musical_metadata[title]['artist'], 'id': musical_metadata[title]['id']}
         )
-
-    return readable_db
-
-
 
     return readable_db

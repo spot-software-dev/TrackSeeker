@@ -9,6 +9,7 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
+from google.auth.exceptions import RefreshError
 from googleapiclient.http import MediaIoBaseDownload
 
 DOWNLOADED_STORIES_DIR = os.path.join(os.path.abspath(os.curdir), 'DownloadedStories')
@@ -78,7 +79,12 @@ class Drive:
         # If there are no (valid) credentials available, let the user log in.
         if not self.creds or not self.creds.valid:
             if self.creds and self.creds.expired and self.creds.refresh_token:
-                self.creds.refresh(Request())
+                try:
+                    self.creds.refresh(Request())
+                except RefreshError as _:
+                    logger.info('Token expired. Removing and logging in to Google to create a new token...')
+                    os.remove(os.path.join(MAIN_DIR, 'token.json'))
+                    self.creds.refresh(Request())
             else:
                 flow = InstalledAppFlow.from_client_secrets_file(
                     credentials_path, SCOPES)

@@ -12,6 +12,8 @@ TEST_TRACKS_IN_DB = ['intro + sound the system', 'Alawan', 'Red Samba', 'Billie 
 TEST_FILE_CONTENT = open(os.path.join(DIR_PATH, 'Raggae_Soundsystem_intro.mp3'), 'rb').read()
 TEST_UPLOADED_FILE = io.BytesIO(TEST_FILE_CONTENT)
 TEST_UPLOADED_FILE.filename = 'Raggae_Soundsystem_intro.mp3'  # Set the filename attribute
+WRONG_FILE_FORMAT = os.path.join(DIR_PATH, 'wrong_file_format.txt')
+
 
 @pytest.fixture()
 def cleanup():
@@ -28,6 +30,15 @@ def cleanup():
     if file_to_delete in list(files_in_db):
         file_id = get_id_from_title(db, file_to_delete)
         delete_id_from_db(file_id)
+
+
+@pytest.fixture()
+def wrong_file_format_setup():
+    """If not existent, create a .txt file to be recognized."""
+    if not os.path.exists(WRONG_FILE_FORMAT):
+        with open(WRONG_FILE_FORMAT, 'w') as file:
+            text_input = "lorem ipsum"
+            file.write(text_input)
 
 
 def test_existing_track_wav():
@@ -50,9 +61,9 @@ def test_existing_famous_track():
     assert recognize(os.path.join(DIR_PATH, 'Billie_Jean_sample.wav'))
 
 
-def test_music_recognition_error():
-    with pytest.raises(MusicRecognitionError):
-        recognize(os.path.join(DIR_PATH, 'wrong_file_format.txt'))
+def test_music_recognition_error(wrong_file_format_setup):
+    assert not recognize(os.path.join(DIR_PATH, 'wrong_file_format.txt'))
+    assert not os.path.exists(WRONG_FILE_FORMAT)
 
 
 def test_get_files_in_db():

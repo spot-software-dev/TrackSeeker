@@ -25,6 +25,15 @@ def test_logic(profile):
     assert len(recognized_songs) == 1
 
 
+def test_logic_manual_usage():
+    username = "boidemplus"
+    recognized_songs = logic(username)
+    if recognized_songs:
+        print(f"Recognized songs! :) Variable output: {recognized_songs}")
+    else:
+        print(f"Did not recognize any songs :( Variable output: {recognized_songs}")
+
+
 @pytest.mark.parametrize('profile', PROFILES_WITHOUT_RECOGNIZED_MUSIC)
 def test_blank_logic(profile):
     recognized_songs = logic(profile)

@@ -2,26 +2,26 @@ import time
 from flask import Flask, jsonify, request, render_template
 from flask_cors import CORS, cross_origin
 from flask_mail import Mail, Message
-from .config import Config
-from .logic import logic, location_logic
-from .music_recognition import get_human_readable_db, upload_to_db_protected, delete_id_from_db_protected_for_web
-from .story_story_logic import StoryStorySession
+from config import Config
+from logic import logic, location_logic
+from music_recognition import get_human_readable_db, upload_to_db_protected, delete_id_from_db_protected_for_web
+from story_story_logic import StoryStorySession
 
-app = Flask(__name__)
+application = Flask(__name__)
 
-app.config.from_object(Config)
+application.config.from_object(Config)
 
-mail = Mail(app)
-cors = CORS(app)
+mail = Mail(application)
+cors = CORS(application)
 
-@app.route('/api/data', methods=['GET'])
+@application.route('/api/data', methods=['GET'])
 def get_data():
     # Your main function logic goes here
     data = [{'message': 'Hello from Python backend!'}]
     return jsonify(data)
 
 
-@app.route('/api/songs', methods=['GET'])
+@application.route('/api/songs', methods=['GET'])
 @cross_origin()
 def get_songs():
     username = request.args.get("username")
@@ -35,13 +35,13 @@ def get_songs():
         return jsonify(error=str(e)), 500
 
 
-@app.route('/api/database_songs', methods=['GET'])
+@application.route('/api/database_songs', methods=['GET'])
 def get_database_songs():
     db = get_human_readable_db()
     return jsonify(db)
 
 
-@app.route('/api/upload_song', methods=['POST'])
+@application.route('/api/upload_song', methods=['POST'])
 def upload_song():
     audio_file = request.files.get("file")
     title = request.form.get("title")
@@ -58,7 +58,7 @@ def upload_song():
         return jsonify(error=str(e)), 500
 
 
-@app.route('/api/delete_song', methods=['POST'])
+@application.route('/api/delete_song', methods=['POST'])
 def delete_song():
     data = request.get_json()  # Retrieve data from the request body
 
@@ -74,7 +74,7 @@ def delete_song():
         return jsonify(error=str(e)), 500
 
 
-@app.route('/api/location_songs', methods=['POST'])
+@application.route('/api/location_songs', methods=['POST'])
 def get_location_songs():
     data = request.get_json()  # Retrieve data from the request body
     location = data.get('location')
@@ -89,7 +89,7 @@ def get_location_songs():
         return jsonify(error=str(e)), 500
 
 
-@app.route('/api/locations', methods=['POST'])
+@application.route('/api/locations', methods=['POST'])
 def get_locations():
     data = request.get_json()
     dashboard = data.get('dashboard')
@@ -102,7 +102,7 @@ def get_locations():
     return jsonify(locations)
 
 
-@app.route('/api/send_location_email', methods=['POST'])
+@application.route('/api/send_location_email', methods=['POST'])
 def send_email():
     data = request.get_json()
     recipients = data.get('recipients')
@@ -123,4 +123,4 @@ def send_email():
 
 
 if __name__ == '__main__':
-    app.run()
+    application.run()

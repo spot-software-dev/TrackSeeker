@@ -2,7 +2,7 @@ import os
 import time
 
 from loguru import logger
-from .drive_logic import Drive
+from drive_logic import Drive
 from os import path
 import datetime
 from selenium import webdriver

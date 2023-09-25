@@ -72,6 +72,10 @@ class StoryStorySession:
         # Make selenium run without web-display
         options = webdriver.ChromeOptions()
         options.add_argument('headless')
+        options.add_argument("no-sandbox")
+        options.add_argument("enable-automation")
+        options.add_argument("disable-infobars")
+        options.add_argument("disable-dev-shm-usage")
 
         # Create a webdriver instance
         self.driver = webdriver.Chrome(options=options)

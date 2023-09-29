@@ -27,6 +27,8 @@ logs
 credentials.json
 token.json
 DownloadedStories
+containers.json
+public-endpoint.json
 
 # Coverage reports
 htmlcov/

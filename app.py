@@ -2,10 +2,10 @@ import time
 from flask import Flask, jsonify, request, render_template
 from flask_cors import CORS, cross_origin
 from flask_mail import Mail, Message
-from .config import Config
-from .logic import logic, location_logic
-from .music_recognition import get_human_readable_db, upload_to_db_protected, delete_id_from_db_protected_for_web
-from .story_story_logic import StoryStorySession
+from config import Config
+from logic import logic, location_logic
+from music_recognition import get_human_readable_db, upload_to_db_protected, delete_id_from_db_protected_for_web
+from story_story_logic import StoryStorySession
 
 app = Flask(__name__)
 
@@ -122,5 +122,5 @@ def send_email():
         return jsonify(error=str(e)), 500
 
 
-if __name__ == '__main__':
-    app.run()
+if __name__ == "__main__":
+    app.run(host='0.0.0.0', port=5000)

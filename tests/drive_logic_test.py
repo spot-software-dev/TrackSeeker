@@ -6,6 +6,8 @@ from drive_logic import Drive, DriveLocationNotFound
 
 LOCATION = 'selina mantur'
 NON_EXISTENT_LOCATION = 'RISHON_LETZION'
+EXISTENT_LOCATION_NAME = 'Mantur Beit Oren by Selina'
+DASHBOARD = "Yost Koen"
 DATE = datetime.date(2023, 8, 24)
 
 
@@ -69,3 +71,9 @@ def test_get_download_link(drive):
 def test_get_location_dates(drive):
     location_dates = drive.get_location_dates(LOCATION)
     assert date_validator(location_dates[0])
+
+
+def test_get_locations_and_dates(drive):
+    locations_and_dates = drive.get_locations_and_dates(DASHBOARD)
+    assert EXISTENT_LOCATION_NAME in [location['name'] for location in locations_and_dates]
+    assert date_validator(locations_and_dates[0]['location_dates'][0])

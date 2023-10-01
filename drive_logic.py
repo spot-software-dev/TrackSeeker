@@ -265,3 +265,50 @@ class Drive:
             location_dates.add(file_date)
 
         return sorted(list(location_dates))
+
+    def _get_locations(self, dashboard: str) -> list:
+        """
+        Get from Google Drive all Story-Story user's dashboard locations that were followed
+        and acquired Instagram Stories.
+        """
+        directory_name = self.get_location_directory(dashboard)
+        query = f"'{directory_name}' in parents and mimeType = 'application/vnd.google-apps.folder'"
+        try:
+            service = build(API_NAME, API_VERSION, credentials=self.creds)
+
+            page_token = None
+            location_folders = []
+            while True:
+                # Call the Drive v3 API
+                results = service.files().list(q=query, fields="nextPageToken, files(id, name)",
+                                               pageToken=page_token).execute()
+                items = results.get('files', [])
+
+                if not items:
+                    logger.info('No files found.')
+                    return []
+                location_folders.extend([item["name"] for item in items])
+                page_token = results.get('nextPageToken', None)
+                if page_token is None:
+                    break
+
+        except HttpError as error:
+            logger.error(f"An error occurred: {error}")
+            raise HttpError(resp=error.resp, content=error.content, uri=error.uri)
+
+        logger.info(f'Locations in Drive: {location_folders}')
+        return location_folders
+
+    def get_locations_and_dates(self, dashboard: str) -> list:
+        """
+        Get from Google Drive all Story-Story user's dashboard locations that were followed
+        and acquired Instagram Stories and all dates that someone posted a story tagging that location.
+        """
+        locations_folders = self._get_locations(dashboard=dashboard)
+        locations_and_dates = []
+        for location_folder in locations_folders:
+            location_name = location_folder.split('_')[0]
+            location_dates = self.get_location_dates(location_folder)
+            locations_and_dates.append({'name': location_name, 'location_dates': location_dates})
+
+        return locations_and_dates

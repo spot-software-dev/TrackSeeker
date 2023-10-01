@@ -1,12 +1,10 @@
-import time
 from flask import Flask, jsonify, request, render_template
 from flask_cors import CORS, cross_origin
 from flask_mail import Mail, Message
 from config import Config
 from logic import logic, location_logic
 from music_recognition import get_human_readable_db, upload_to_db_protected, delete_id_from_db_protected_for_web
-from story_story_logic import StoryStorySession
-
+from drive_logic import Drive
 app = Flask(__name__)
 
 app.config.from_object(Config)
@@ -89,17 +87,16 @@ def get_location_songs():
         return jsonify(error=str(e)), 500
 
 
-@app.route('/api/locations', methods=['POST'])
+@app.route('/api/locations', methods=['GET'])
 def get_locations():
     data = request.get_json()
-    dashboard = data.get('dashboard')
+    dashboard = data.get("dashboard")
+    drive = Drive()
     try:
-        storystory_session = StoryStorySession()
-        time.sleep(0.5)
-        locations = storystory_session.get_instagram_followed_locations_and_dates(dashboard_name=dashboard)
+        locations_and_dates = drive.get_locations_and_dates(dashboard)
     except Exception as e:
         return jsonify(error=str(e)), 500
-    return jsonify(locations)
+    return jsonify(locations_and_dates)
 
 
 @app.route('/api/send_location_email', methods=['POST'])

@@ -13,6 +13,9 @@ COPY requirements.txt .
 # Install any dependencies
 RUN pip install -r requirements.txt --upgrade
 
+# Install dependencies
+RUN apt update && apt install -y curl
+
 # Copy the source code into the container.
 COPY . .
 

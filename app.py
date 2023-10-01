@@ -87,7 +87,7 @@ def get_location_songs():
         return jsonify(error=str(e)), 500
 
 
-@app.route('/api/locations', methods=['GET'])
+@app.route('/api/locations', methods=['POST'])
 def get_locations():
     data = request.get_json()
     dashboard = data.get("dashboard")

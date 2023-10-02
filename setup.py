@@ -1,13 +1,13 @@
 from os import environ
+import os.path
+import datetime
 import json
+from loguru import logger
 from dotenv.main import load_dotenv
 load_dotenv()
 
 GOOGLE_PRIVATE_KEY_ID = environ.get("GOOGLE_PRIVATE_KEY_ID")
-GOOGLE_PRIVATE_KEY = environ.get("GOOGLE_PRIVATE_KEY")
-
-if GOOGLE_PRIVATE_KEY:
-    GOOGLE_PRIVATE_KEY = GOOGLE_PRIVATE_KEY.replace("\\n", "\n")
+GOOGLE_PRIVATE_KEY = environ.get("GOOGLE_PRIVATE_KEY", "").replace("\\n", "\n")
 
 CREDENTIALS = {
     "type": "service_account",
@@ -23,9 +23,28 @@ CREDENTIALS = {
     "universe_domain": "googleapis.com"
 }
 
+MAIN_DIR = os.path.dirname(os.path.abspath(__file__))
+date_now = datetime.date.today()
+logger.add(os.path.join(MAIN_DIR, 'logs', 'setup',
+           f"setup_{date_now}.log"), rotation="1 day")
+
+
+class GoogleAuthKeyEnvValuesError(OSError):
+    """Raised when encountered an error while trying to receive env values for google auth file"""
+
+    def __init__(self):
+        self.message = f"Encountered an error while trying to receive env values"
+        logger.error(self.message)
+
+    def __str__(self):
+        return self.message
+
 
 def google_key_generate():
-    creds = json.dumps(CREDENTIALS)
+    if GOOGLE_PRIVATE_KEY and GOOGLE_PRIVATE_KEY_ID:
+        creds = json.dumps(CREDENTIALS)
 
-    with open("service-account-key.json", 'w') as json_file:
-        json_file.write(creds)
+        with open("service-account-key.json", 'w') as json_file:
+            json_file.write(creds)
+    else:
+        raise GoogleAuthKeyEnvValuesError

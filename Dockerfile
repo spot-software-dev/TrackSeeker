@@ -16,8 +16,11 @@ RUN pip install -r requirements.txt --upgrade
 # Install dependencies
 RUN apt update && apt install -y curl
 
+# Install gunicorn for prod
+RUN pip install gunicorn
+
 # Copy the source code into the container.
 COPY . .
 
-# Run the application.
-CMD [ "python", "./app.py" ]
+# Use Gunicorn to run the application.
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "-w 4", "app:app"]

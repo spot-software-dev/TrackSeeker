@@ -78,11 +78,12 @@ class Drive:
         self.creds = service_account.Credentials.from_service_account_file(
             SERVICE_ACCOUNT_FILE, scopes=SCOPES)
 
+        self.service = build(API_NAME, API_VERSION, credentials=self.creds)
+
     def get_location_directory(self, location: str) -> str:
         query = f"fullText contains \"'{location}_'\" and mimeType = 'application/vnd.google-apps.folder'"
 
-        service = build(API_NAME, API_VERSION, credentials=self.creds)
-        results = service.files().list(q=query).execute()
+        results = self.service.files().list(q=query).execute()
         folders = results.get('files', [])
 
         if not folders:
@@ -112,14 +113,13 @@ class Drive:
         date = datetime.date(year=year, month=month, day=day)
         query = f"'{folder_id}' in parents and mimeType contains 'video/' and fullText contains '{date}'"
         try:
-            service = build(API_NAME, API_VERSION, credentials=self.creds)
 
             page_token = None
             files = []
             while True:
                 # Call the Drive v3 API
-                results = service.files().list(q=query, fields="nextPageToken, files(id, name)",
-                                               pageToken=page_token).execute()
+                results = self.service.files().list(q=query, fields="nextPageToken, files(id, name)",
+                                                    pageToken=page_token).execute()
                 items = results.get('files', [])
 
                 if not items:
@@ -177,8 +177,7 @@ class Drive:
         :return: Absolute path to the downloaded file
         :exception: DriveDownloadError: Couldn't download or save the Drive file
         """
-        service = build(API_NAME, API_VERSION, credentials=self.creds)
-        request = service.files().get_media(fileId=file_id)
+        request = self.service.files().get_media(fileId=file_id)
         fh = io.BytesIO()
 
         downloader = MediaIoBaseDownload(fh, request, chunksize=204800)
@@ -220,8 +219,7 @@ class Drive:
     def get_download_link(self, file_id: str):
         """Get the url link to download the file from drive"""
         logger.debug('Getting download link...')
-        service = build(API_NAME, API_VERSION, credentials=self.creds)
-        file_metadata = service.files().get(
+        file_metadata = self.service.files().get(
             fileId=file_id, fields='webContentLink').execute()
         download_link = file_metadata.get('webContentLink')
         logger.success(f"Successfully got download link")
@@ -229,16 +227,15 @@ class Drive:
 
     def _get_files_in_folder(self, folder_id: str):
         """Get all files in folder"""
-        service = build(API_NAME, API_VERSION, credentials=self.creds)
 
         results = []
         page_token = None
 
         while True:
-            response = service.files().list(q=f"'{folder_id}' in parents",
-                                            spaces='drive',
-                                            fields='nextPageToken, files(id, name)',
-                                            pageToken=page_token).execute()
+            response = self.service.files().list(q=f"'{folder_id}' in parents",
+                                                 spaces='drive',
+                                                 fields='nextPageToken, files(id, name)',
+                                                 pageToken=page_token).execute()
 
             files = response.get('files', [])
             results.extend(files)
@@ -268,14 +265,12 @@ class Drive:
         directory_name = self.get_location_directory(dashboard)
         query = f"'{directory_name}' in parents and mimeType = 'application/vnd.google-apps.folder'"
         try:
-            service = build(API_NAME, API_VERSION, credentials=self.creds)
 
             page_token = None
             location_folders = []
             while True:
-                # Call the Drive v3 API
-                results = service.files().list(q=query, fields="nextPageToken, files(id, name)",
-                                               pageToken=page_token).execute()
+                results = self.service.files().list(q=query, fields="nextPageToken, files(id, name)",
+                                                    pageToken=page_token).execute()
                 items = results.get('files', [])
 
                 if not items:

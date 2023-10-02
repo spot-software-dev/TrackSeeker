@@ -1,4 +1,3 @@
-import setup
 from flask import Flask, jsonify, request, render_template
 from flask_cors import CORS, cross_origin
 from flask_mail import Mail, Message

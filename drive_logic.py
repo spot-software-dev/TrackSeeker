@@ -1,3 +1,4 @@
+from setup import google_key_generate
 from loguru import logger
 import os.path
 import datetime
@@ -89,17 +90,22 @@ class Drive:
         try:
             logger.info(
                 'Trying to authenticated Google Cloud service...')
+            
+            if not os.path.exists(SERVICE_ACCOUNT_FILE):
+                logger.warning('Google authenication key was not found')
+                logger.info('Trying to generate a new key...')
+                
+                google_key_generate()
+                
+                logger.success('Generated a new authenication key file.')
 
-            if os.path.exists(SERVICE_ACCOUNT_FILE):
+            credentials = service_account.Credentials.from_service_account_file(
+                SERVICE_ACCOUNT_FILE, scopes=SCOPES)
 
-                self.creds = service_account.Credentials.from_service_account_file(
-                    SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+            self.service = build(API_NAME, API_VERSION,
+                                     credentials=credentials)
 
-                self.service = build(API_NAME, API_VERSION,
-                                     credentials=self.creds)
-
-                logger.success(
-                    'Google Cloud service account is authenticated.')
+            logger.success('Google Cloud service account is authenticated.')
 
         except Exception as e:
             raise GoogleCloudAuthError(e)

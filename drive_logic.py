@@ -30,6 +30,17 @@ class DriveError(HttpError):
     """Raised when encountered an error while using Drive"""
 
 
+class GoogleCloudAuthError(DriveError):
+    """Raised when encountered an error authenticating google cloud"""
+
+    def __init__(self, e):
+        self.message = f"Encountered an error while authenticating google cloud: {e}"
+        logger.error(self.message)
+
+    def __str__(self):
+        return self.message
+
+
 class DriveDownloadError(DriveError):
     """Raised when encountered an error while downloading from Drive"""
 
@@ -75,10 +86,23 @@ class Drive:
         SERVICE_ACCOUNT_FILE = os.path.join(
             MAIN_DIR, 'service-account-key.json')
 
-        self.creds = service_account.Credentials.from_service_account_file(
-            SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+        try:
+            logger.info(
+                'Trying to authenticated Google Cloud service...')
 
-        self.service = build(API_NAME, API_VERSION, credentials=self.creds)
+            if os.path.exists(SERVICE_ACCOUNT_FILE):
+
+                self.creds = service_account.Credentials.from_service_account_file(
+                    SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+
+                self.service = build(API_NAME, API_VERSION,
+                                     credentials=self.creds)
+
+                logger.success(
+                    'Google Cloud service account is authenticated.')
+
+        except Exception as e:
+            raise GoogleCloudAuthError(e)
 
     def get_location_directory(self, location: str) -> str:
         query = f"fullText contains \"'{location}_'\" and mimeType = 'application/vnd.google-apps.folder'"

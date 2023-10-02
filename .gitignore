@@ -24,7 +24,6 @@ docs/_build/
 logs
 
 # local files
-credentials.json
 token.json
 service-account-key.json
 DownloadedStories

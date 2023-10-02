@@ -3,19 +3,27 @@ import json
 from dotenv.main import load_dotenv
 load_dotenv()
 
-CLIENT_ID = environ.get("CLIENT_ID")
-PROJECT_ID = environ.get("PROJECT_ID")
-CLIENT_SECRET = environ.get("CLIENT_SECRET")
+GOOGLE_PRIVATE_KEY_ID = environ.get("GOOGLE_PRIVATE_KEY_ID")
+GOOGLE_PRIVATE_KEY = environ.get("GOOGLE_PRIVATE_KEY")
+
+if GOOGLE_PRIVATE_KEY:
+    GOOGLE_PRIVATE_KEY = GOOGLE_PRIVATE_KEY.replace("\\n", "\n")
 
 CREDENTIALS = {
-        "installed": {
-            "client_id": f"{CLIENT_ID}.apps.googleusercontent.com",
-            "project_id": f"supple-portal-{PROJECT_ID}", "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-            "token_uri": "https://oauth2.googleapis.com/token",
-            "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-            "client_secret": f"{CLIENT_SECRET}", "redirect_uris": ["http://localhost"]}
-    }
+    "type": "service_account",
+    "project_id": "supple-portal-395117",
+    "private_key_id": f"{GOOGLE_PRIVATE_KEY_ID}",
+    "private_key": f"-----BEGIN PRIVATE KEY-----{GOOGLE_PRIVATE_KEY}-----END PRIVATE KEY-----\n",
+    "client_email": "spot-id@supple-portal-395117.iam.gserviceaccount.com",
+    "client_id": "114206747933036399061",
+    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+    "token_uri": "https://oauth2.googleapis.com/token",
+    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+    "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/spot-id%40supple-portal-395117.iam.gserviceaccount.com",
+    "universe_domain": "googleapis.com"
+}
+
 creds = json.dumps(CREDENTIALS)
 
-with open("credentials.json", 'w') as json_file:
+with open("service-account-key.json", 'w') as json_file:
     json_file.write(creds)

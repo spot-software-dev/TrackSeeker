@@ -23,7 +23,9 @@ CREDENTIALS = {
     "universe_domain": "googleapis.com"
 }
 
-creds = json.dumps(CREDENTIALS)
 
-with open("service-account-key.json", 'w') as json_file:
-    json_file.write(creds)
+def google_key_generate():
+    creds = json.dumps(CREDENTIALS)
+
+    with open("service-account-key.json", 'w') as json_file:
+        json_file.write(creds)

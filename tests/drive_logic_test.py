@@ -4,6 +4,8 @@ import datetime
 from tests.test_tools import url_validator, date_validator
 from drive_logic import Drive, DriveLocationNotFound
 
+TEST_TRACK_ID = "1LwTsb1fsXpT9TkWcMAWWboxoF5kqcSzA"
+TEST_TRACK_LINK = f'https://drive.google.com/file/d/{TEST_TRACK_ID}/view?usp=sharing'
 LOCATION = 'selina mantur'
 NON_EXISTENT_LOCATION = 'RISHON_LETZION'
 EXISTENT_LOCATION_NAME = 'Mantur Beit Oren by Selina'
@@ -77,3 +79,8 @@ def test_get_locations_and_dates(drive):
     locations_and_dates = drive.get_locations_and_dates(DASHBOARD)
     assert EXISTENT_LOCATION_NAME in [location['name'] for location in locations_and_dates]
     assert date_validator(locations_and_dates[0]['location_dates'][0])
+
+
+def test_get_id_from_sharable_link(drive):
+    track_id = drive.get_id_from_sharable_link(TEST_TRACK_LINK)
+    assert track_id == TEST_TRACK_ID

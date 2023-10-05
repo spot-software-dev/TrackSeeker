@@ -13,9 +13,12 @@ from werkzeug.utils import secure_filename
 load_dotenv()
 
 BUCKET_ID = 20149
+CONTAINER_ID = os.environ.get('CONTAINER_ID', '')
 MAIN_DIR = os.path.dirname(os.path.abspath(__file__))
 date_now = datetime.date.today()
 logger.add(os.path.join(MAIN_DIR, 'logs', 'music_recognition', f"music_recognition_{date_now}.log"), rotation="1 day")
+
+CONTAINERS_RESULTS_LIMIT = 10000000
 
 
 class MusicError(OSError):
@@ -50,8 +53,8 @@ class MusicUploadError(MusicError):
 
 class MusicDeleteError(MusicError):
     """Raised when an error occurred while deleting music using ACRCloud API"""
-    def __init__(self):
-        self.message = "Can't delete audio file from database"
+    def __init__(self, error):
+        self.message = f"Can't delete audio file from database {error}"
         logger.error(self.message)
 
     def __str__(self):
@@ -304,3 +307,123 @@ def get_human_readable_db() -> list:
         )
 
     return readable_db
+
+
+def add_to_container_recognizer(link: str) -> dict:
+    """
+    Add file to the container recognizer.
+    """
+
+    url = f"https://api-v2.acrcloud.com/api/fs-containers/{CONTAINER_ID}/files"
+
+    payload = {
+        'data_type': 'platforms',
+        'url': link
+    }
+
+    headers = {
+        'Accept': 'application/json',
+        'Authorization': f'Bearer {BUCKET_INTERACTION_TOKEN}',
+        'Content-Type': 'application/json'
+    }
+
+    response = requests.request("POST", url, headers=headers, json=payload)
+
+    if response.status_code in [200, 201]:
+        logger.success(f"Uploaded {link} to container ID {CONTAINER_ID}")
+        return response.json()
+    else:
+        logger.error(f"Upload to container failed with status code:\n{response.status_code}")
+        raise MusicRecognitionError(response.text)
+
+
+def list_container_files_and_results() -> list:
+    """
+    Get all files in ACRCloud container and their recognition results
+    """
+    url = f"https://api-v2.acrcloud.com/api/fs-containers/{CONTAINER_ID}/files?page=1&per_page={CONTAINERS_RESULTS_LIMIT}&with_result=1"
+
+    payload = {}
+    headers = {
+        'Accept': 'application/json',
+        'Authorization': f'Bearer {BUCKET_INTERACTION_TOKEN}'
+    }
+
+    response = requests.request("GET", url, headers=headers, data=payload)
+
+    if response.status_code == 200:
+        data = response.json()
+        logger.info(f"Finished getting all {len(data['data'])} files in container ID {CONTAINER_ID}")
+    else:
+        logger.error(f"Getting files from container failed with status code:\n{response.status_code}")
+        raise MusicRecognitionError(response.text)
+
+    results = []
+    for recognition in data['data']:
+        recognition_data = {
+            'drive_url': recognition['url'],
+            'acrcloud_id': recognition['id'],
+            'name': recognition['name']
+        }
+        if recognition['results']:
+            metadata = recognition['results']['custom_files'][0]['result']
+            relevant_metadata = {
+                'title': metadata['title'],
+                'artist': metadata['artist'],
+                'album': metadata['album']
+            }
+            recognition_data['results'] = relevant_metadata
+        else:
+            recognition_data['results'] = None
+
+        results.append(recognition_data)
+
+    return results
+
+
+def delete_from_container_recognizer(file_acrcloud_id: str):
+    """
+    Delete file from ACRCloud container recognizer
+    :param file_acrcloud_id: ACRCloud file ID
+    """
+
+    url = f"https://api-v2.acrcloud.com/api/fs-containers/{CONTAINER_ID}/files/{file_acrcloud_id}"
+
+    headers = {
+        'Accept': 'application/json',
+        'Authorization': f'Bearer {BUCKET_INTERACTION_TOKEN}'
+    }
+
+    try:
+        requests.request("DELETE", url, headers=headers)
+        logger.success(f"Deleted ACRCloud file ID {file_acrcloud_id} from container ID {CONTAINER_ID}")
+    except requests.RequestException as e:
+        raise MusicDeleteError(str(e))
+
+
+def rescan_all_files():
+    """Rescan stories in ACRCloud container according to tracks in the database"""
+    acrcloud_files_ids = [file['acrcloud_id'] for file in list_container_files_and_results()]
+
+    chunk_size = 100
+    number_of_chunks = len(acrcloud_files_ids) // chunk_size
+    for current_chunk_num in range(number_of_chunks + 1):  # plus 1 for the final chunk
+        logger.debug(f"Making ACRCloud rescan chunk num {current_chunk_num} out of {number_of_chunks}.")
+        acrcloud_files_ids_chunk = ",".join(
+            acrcloud_files_ids[current_chunk_num * chunk_size: (current_chunk_num + 1) * chunk_size]
+        )
+        url = f"https://api-v2.acrcloud.com/api/fs-containers/{CONTAINER_ID}/files/{acrcloud_files_ids_chunk}/rescan"
+
+        headers = {
+            'Accept': 'application/json',
+            'Authorization': f'Bearer {BUCKET_INTERACTION_TOKEN}'
+        }
+
+        try:
+            response = requests.request("PUT", url, headers=headers)
+        except requests.RequestException as e:
+            raise MusicDeleteError(str(e))
+
+        logger.debug(response.text)
+
+    logger.success(f"Rescanned all files from ACRCloud container.")

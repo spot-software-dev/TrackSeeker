@@ -75,6 +75,15 @@ class DriveLocationNotFound(DriveError):
         return self.message
 
 
+class DriveShareableLinkError(DriveError):
+    """Raised when could not retrieve the Drive file's shareable link."""
+    def __init__(self):
+        self.message = "Error: Unable to retrieve the shareable link.."
+
+    def __str__(self):
+        return self.message
+
+
 def clear_downloaded_stories_dir() -> None:
     """Removes all files in the downloaded stories dir."""
     for file in os.listdir(DOWNLOADED_STORIES_DIR):
@@ -169,6 +178,38 @@ class Drive:
         logger.info(f'Files in Drive for day {date}: {files}')
         return files
 
+    def get_all_files(self):
+        """
+        Get all drive files.
+        :return: list of files as dictionaries - [{id: ..., name: ...}, {id: ..., name: ...}, ... ]
+        :exception: HttpError: Couldn't get files from Drive
+        """
+
+        query = f"mimeType contains 'video/'"
+        try:
+            page_token = None
+            files = []
+            while True:
+                # Call the Drive v3 API
+                results = self.service.files().list(q=query, fields="nextPageToken, files(id, name)",
+                                                    pageToken=page_token).execute()
+                items = results.get('files', [])
+
+                if not items:
+                    logger.info('No files found.')
+                    return []
+                files.extend([{"id": item["id"], "name": item["name"]} for item in items])
+                page_token = results.get('nextPageToken', None)
+                if page_token is None:
+                    break
+
+        except HttpError as error:
+            logger.error(f"An error occurred: {error}")
+            raise HttpError(resp=error.resp, content=error.content, uri=error.uri)
+
+        logger.info(f'Finished getting all {len(files)} files from drive')
+        return files
+
     def get_files(self, location: str,
                   start_year: int, start_month: int, start_day: int,
                   end_year: int, end_month: int, end_day: int) -> list:
@@ -177,14 +218,20 @@ class Drive:
         :return: list of files as dictionaries - [{id: ..., name: ...}, {id: ..., name: ...}, ... ]
         :exception: HttpError: Couldn't get files from Drive
         """
+
+        folder_id = self.get_location_directory(location)
+
+        if not end_year or not end_month or not end_day:
+            return self.get_files_at_date_in_folder(folder_id=folder_id,
+                                                    year=start_year,
+                                                    month=start_month,
+                                                    day=start_day)
         start_date = datetime.datetime(
             year=start_year, month=start_month, day=start_day)
         end_date = datetime.datetime(
             year=end_year, month=end_month, day=end_day)
         current_date = start_date
         files = []
-
-        folder_id = self.get_location_directory(location)
 
         while current_date <= end_date:
             files.extend(self.get_files_at_date_in_folder(folder_id=folder_id,
@@ -198,6 +245,14 @@ class Drive:
     @staticmethod
     def get_file_link(file_id: str) -> str:
         return f"https://drive.google.com/uc?id={file_id}"
+
+    @staticmethod
+    def get_file_sharable_link(file_id):
+        return f'https://drive.google.com/file/d/{file_id}/view?usp=sharing'
+
+    @staticmethod
+    def get_id_from_sharable_link(link: str) -> str:
+        return link.replace('https://drive.google.com/file/d/', '').replace('/view?usp=sharing', '')
 
     def _download(self, file_id: int, file_name: str) -> str:
         """

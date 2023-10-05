@@ -3,8 +3,9 @@ import os.path
 
 from loguru import logger  # TODO: Add logging to logger and its tests
 from instagram_bot import IGBOT, STORIES_DIR_PATH
-from music_recognition import recognize, MusicRecognitionError, check_if_video_has_audio
-from drive_logic import Drive, clear_downloaded_stories_dir
+from music_recognition import recognize, MusicRecognitionError
+from music_recognition import list_container_files_and_results, add_to_container_recognizer
+from drive_logic import Drive
 
 MAIN_DIR = os.path.dirname(os.path.abspath(__file__))
 date_now = datetime.date.today()
@@ -40,29 +41,78 @@ def logic(username: str) -> list:
     return recognised_tracks
 
 
+def get_acrcloud_ids_from_drive_id(drive_id: str) -> list:
+    """Get a list of ACRCloud file IDs of the entered Google Drive ID in ACRCloud container"""
+    container_files = list_container_files_and_results()
+    acrcloud_ids = []
+    for container_file in container_files:
+        container_file_drive_id = Drive.get_id_from_sharable_link(container_file['drive_url'])
+        if drive_id == container_file_drive_id:
+            acrcloud_ids.append(container_file['acrcloud_id'])
+
+    return acrcloud_ids
+
+
+def get_stories_not_in_acrcloud_container() -> list:
+    """Get all stories in Google Drive that are not yet in ACRCloud container"""
+    drive = Drive()
+    drive_files = drive.get_all_files()
+    acrcloud_recognition_results = list_container_files_and_results()
+    acrcloud_files_urls = [story_recognition['drive_url'] for story_recognition in acrcloud_recognition_results]
+    acrcloud_files_ids = [drive.get_id_from_sharable_link(acrcloud_file_url) for acrcloud_file_url in acrcloud_files_urls]
+
+    stories_to_add = []
+
+    for file in drive_files:
+        if file['id'] in acrcloud_files_ids:
+            acrcloud_files_ids.remove(file['id'])
+        else:
+            stories_to_add.append(file)
+
+    return stories_to_add
+
+
+def sync_stories_to_recognize():
+    """Upload stories in Google Drive that are not yet in ACRCloud container."""
+    logger.info("Synchronizing ACRCloud stories with the stories saved in Google Drive")
+    drive_stories_to_add = get_stories_not_in_acrcloud_container()
+    for drive_story in drive_stories_to_add:
+        drive_story_url = Drive.get_file_sharable_link(drive_story['id'])
+        add_to_container_recognizer(drive_story_url)
+
+
 def location_logic(location: str,
                    day: int = date_now.day, month: int = date_now.month, year: int = date_now.year,
                    end_day: int = 0, end_month: int = 0, end_year: int = 0) -> list:
+    """
+    Get stories tagged with a certain location on a certain date with a track present in the database.
+    (Can be used with consecutive dates - fill end date parameters for the consecutive dates functionality)
+    :param location: Location name of tagged location stories
+    :param day: Day of the date to search stories on (also the starting day of consecutive days)
+    :param month: Month of the date to search stories on (also the starting month of consecutive days)
+    :param year: Year of the date to search stories on (also the starting year of consecutive days)
+    :param end_day: End day of the dates to search stories on
+    :param end_month: End month of the dates to search stories on
+    :param end_year: End year of the dates to search stories on
+    :return: All stories with music tracks present in the database with Drive URL, Metadata and a download link
+    """
+    logger.info("Starting location search...")
+    stories_recognition_results = list_container_files_and_results()
+    recognized_stories = [story for story in stories_recognition_results if story['results']]
+
     drive = Drive()
-    downloaded_files = drive.download_files(location=location,
-                                            start_day=day, end_day=end_day or day,
-                                            start_month=month, end_month=end_month or month,
-                                            start_year=year, end_year=end_year or year
-                                            )
+    drive_files = drive.get_files(location,
+                                  start_year=year, start_month=month, start_day=day,
+                                  end_year=end_year, end_month=end_month, end_day=end_day)
+    found_results = []
+    for file in recognized_stories:
+        if file['name'] in [drive_file['name'] for drive_file in drive_files]:
+            drive_id = drive.get_id_from_sharable_link(file['drive_url'])
+            download_url = drive.get_download_link(drive_id)
+            file['download_url'] = download_url
+            file_drive_id = drive.get_id_from_sharable_link(file['drive_url'])
+            file['drive_url'] = drive.get_file_link(file_drive_id)
+            found_results.append(file)
 
-    recognized_stories = []
-    for file in downloaded_files:
-        if check_if_video_has_audio(file['path']):
-            result = recognize(file['path'])
-            if result:
-                drive_url = drive.get_file_link(file['id'])
-                download_url = drive.get_download_link(file['id'])
-                logger.success(f"Recognized Song! In story ID: {file['id']}")
-                recognized_stories.append({'drive_url': drive_url, 'download_url': download_url, 'metadata': result})
-        else:
-            logger.debug(f'File {file["path"]} has no audio. Deleting file.')
-            os.remove(file['path'])
-
-    clear_downloaded_stories_dir()
-
-    return recognized_stories
+    logger.success("Finished searching stories in location")
+    return found_results

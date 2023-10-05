@@ -1,13 +1,20 @@
 import os
 import io
 import pytest
+import time
+from .test_tools import url_validator
 from ..music_recognition import recognize, get_files_in_db, upload_to_db_protected, delete_id_from_db
 from ..music_recognition import get_id_from_title, get_musical_metadata, get_human_readable_db
 from ..music_recognition import delete_from_db, delete_id_from_db_protected_for_web, MusicDuplicationError
+from ..music_recognition import list_container_files_and_results, add_to_container_recognizer
+from ..music_recognition import delete_from_container_recognizer, rescan_all_files
+from ..logic import get_acrcloud_ids_from_drive_id
 
 DIR_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'media')
 
 TEST_TRACKS_IN_DB = ['intro + sound the system', 'Alawan', 'Red Samba', 'Billie Jean']
+TEST_TRACK_ID = "1LwTsb1fsXpT9TkWcMAWWboxoF5kqcSzA"
+TEST_TRACK_LINK = f'https://drive.google.com/file/d/{TEST_TRACK_ID}/view?usp=sharing'
 
 TEST_FILE_CONTENT = open(os.path.join(DIR_PATH, 'Raggae_Soundsystem_intro.mp3'), 'rb').read()
 TEST_UPLOADED_FILE = io.BytesIO(TEST_FILE_CONTENT)
@@ -15,21 +22,42 @@ TEST_UPLOADED_FILE.filename = 'Raggae_Soundsystem_intro.mp3'  # Set the filename
 WRONG_FILE_FORMAT = os.path.join(DIR_PATH, 'wrong_file_format.txt')
 
 
+def delete_file_if_exists(file_to_delete: str):
+    """Delete file from ACRCloud database if exists"""
+    db = get_files_in_db()
+    files_in_db = get_musical_metadata(db)
+    if file_to_delete in list(files_in_db):
+        file_id = get_id_from_title(db, file_to_delete)
+        delete_id_from_db(file_id)
+
+
+def delete_file_if_exists_container(file_acrcloud_id_to_delete: str):
+    """Delete file from ACRCloud container if exists"""
+    acrcloud_container_files = list_container_files_and_results()
+    acrcloud_container_files_ids = [file['acrcloud_id'] for file in acrcloud_container_files]
+    if file_acrcloud_id_to_delete in acrcloud_container_files_ids:
+        delete_from_container_recognizer(file_acrcloud_id_to_delete)
+
+
 @pytest.fixture()
 def cleanup():
     """Delete audio file from database after test"""
     file_to_delete = 'intro + sound the system'
-    db = get_files_in_db()
-    files_in_db = get_musical_metadata(db)
-    if file_to_delete in list(files_in_db):
-        file_id = get_id_from_title(db, file_to_delete)
-        delete_id_from_db(file_id)
+    delete_file_if_exists(file_to_delete)
     yield
-    db = get_files_in_db()
-    files_in_db = get_musical_metadata(db)
-    if file_to_delete in list(files_in_db):
-        file_id = get_id_from_title(db, file_to_delete)
-        delete_id_from_db(file_id)
+    delete_file_if_exists(file_to_delete)
+
+
+@pytest.fixture()
+def container_cleanup():
+    """Delete TEST_TRACK from ACRCloud Container"""
+    acrcloud_test_id = get_acrcloud_ids_from_drive_id(TEST_TRACK_ID)
+    if acrcloud_test_id:
+        delete_file_if_exists_container(acrcloud_test_id[-1])
+    yield
+    acrcloud_test_id = get_acrcloud_ids_from_drive_id(TEST_TRACK_ID)
+    if acrcloud_test_id:
+        delete_file_if_exists_container(acrcloud_test_id[-1])
 
 
 @pytest.fixture()
@@ -152,3 +180,22 @@ def test_delete_id_from_db_protected_for_web(cleanup):
     db_after_delete = get_files_in_db()
     assert db_after_delete != db_before_delete
     assert added_track_title not in db_after_delete
+
+
+def test_list_container_files_and_results():
+    results = list_container_files_and_results()
+    assert url_validator(results[0]['drive_url'])
+
+
+def test_add_to_container_recognizer(container_cleanup):
+    container_before_add = list_container_files_and_results()
+    _ = add_to_container_recognizer(TEST_TRACK_LINK)
+    time.sleep(5)
+    container_after_add = list_container_files_and_results()
+    containers_difference = [file for file in container_after_add if file not in container_before_add]
+    assert len(containers_difference) == 1
+    assert containers_difference[0]['drive_url'] == TEST_TRACK_LINK
+
+
+def test_rescan_all_files():
+    rescan_all_files()

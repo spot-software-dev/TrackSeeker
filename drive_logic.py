@@ -104,6 +104,7 @@ class Drive:
     """Google Drive interaction for getting Instagram Stories, their dates and locations."""
 
     def __init__(self, username: str = ""):
+        """Authenticate Google Drive interaction with the necessary approval scopes."""
 
         SERVICE_ACCOUNT_FILE = os.path.join(
             MAIN_DIR, 'service-account-key.json')

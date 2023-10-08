@@ -12,6 +12,7 @@ app.config.from_object(Config)
 mail = Mail(app)
 cors = CORS(app)
 
+
 @app.route('/api/data', methods=['GET'])
 def get_data():
     # Your main function logic goes here

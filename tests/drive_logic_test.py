@@ -9,13 +9,13 @@ TEST_TRACK_LINK = f'https://drive.google.com/file/d/{TEST_TRACK_ID}/view?usp=sha
 LOCATION = 'selina mantur'
 NON_EXISTENT_LOCATION = 'RISHON_LETZION'
 EXISTENT_LOCATION_NAME = 'Mantur Beit Oren by Selina'
-DASHBOARD = "Yost Koen"
+USERNAME = "Yost Koen"
 DATE = datetime.date(2023, 8, 24)
 
 
 @pytest.fixture
 def drive():
-    return Drive()
+    return Drive(USERNAME)
 
 
 def test_download_files(drive):
@@ -27,8 +27,9 @@ def test_download_files(drive):
 
 
 def test_non_existent_location(drive):
+    location_folder_id = drive.get_location_dashboard_folder_id()
     with pytest.raises(DriveLocationNotFound):
-        _ = drive.get_location_directory(location=NON_EXISTENT_LOCATION)
+        _ = drive.get_location_directory_id(location=NON_EXISTENT_LOCATION, location_folder_id=location_folder_id)
 
 
 def test_get_file_link(drive):
@@ -51,7 +52,8 @@ def test_get_files(drive):
 
 
 def test_get_files_at_date_in_folder(drive):
-    drive_location_folder_id = drive.get_location_directory(LOCATION)
+    location_folder_id = drive.get_location_dashboard_folder_id()
+    drive_location_folder_id = drive.get_location_directory_id(LOCATION, location_folder_id)
     drive_files = drive.get_files_at_date_in_folder(folder_id=drive_location_folder_id,
                                                     year=DATE.year,
                                                     month=DATE.month,
@@ -61,7 +63,8 @@ def test_get_files_at_date_in_folder(drive):
 
 
 def test_get_download_link(drive):
-    drive_location_folder_id = drive.get_location_directory(LOCATION)
+    location_folder_id = drive.get_location_dashboard_folder_id()
+    drive_location_folder_id = drive.get_location_directory_id(LOCATION, location_folder_id)
     drive_files = drive.get_files_at_date_in_folder(folder_id=drive_location_folder_id,
                                                     year=DATE.year,
                                                     month=DATE.month,
@@ -71,12 +74,13 @@ def test_get_download_link(drive):
 
 
 def test_get_location_dates(drive):
-    location_dates = drive.get_location_dates(LOCATION)
+    location_folder_id = drive.get_location_dashboard_folder_id()
+    location_dates = drive.get_location_dates(LOCATION, location_folder_id)
     assert date_validator(location_dates[0])
 
 
 def test_get_locations_and_dates(drive):
-    locations_and_dates = drive.get_locations_and_dates(DASHBOARD)
+    locations_and_dates = drive.get_locations_and_dates()
     assert EXISTENT_LOCATION_NAME in [location['name'] for location in locations_and_dates]
     assert date_validator(locations_and_dates[0]['location_dates'][0])
 

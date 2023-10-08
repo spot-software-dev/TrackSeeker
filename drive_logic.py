@@ -54,10 +54,10 @@ class DriveDownloadError(DriveError):
 
 
 class DriveMultipleFolders(DriveError):
-    """Raised when found multiple folders for specified location-folder."""
+    """Raised when found multiple folders while searching the specified folder."""
 
     def __init__(self, folders, partial_name):
-        self.message = f"Found multiple folders for the specified location-folder ({partial_name}): {folders}"
+        self.message = f"Found multiple folders while searching the specified folder ({partial_name}): {folders}"
         logger.error(self.message)
 
     def __str__(self):
@@ -67,8 +67,18 @@ class DriveMultipleFolders(DriveError):
 class DriveLocationNotFound(DriveError):
     """Raised when no folder was found for specified location-folder."""
 
-    def __init__(self):
-        self.message = "Didn't find any folders for the specified location-folder"
+    def __init__(self, location):
+        self.message = f"Didn't find any folders for the specified location-folder: {location}"
+        logger.error(self.message)
+
+    def __str__(self):
+        return self.message
+
+
+class DriveDashboardNotFound(DriveError):
+    """Raised when no folder was found for specified user-dashboard-folder."""
+    def __init__(self, username):
+        self.message = f"Didn't find any folders for the specified user-dashboard-folder: {username}"
         logger.error(self.message)
 
     def __str__(self):
@@ -91,7 +101,9 @@ def clear_downloaded_stories_dir() -> None:
 
 
 class Drive:
-    def __init__(self):
+    """Google Drive interaction for getting Instagram Stories, their dates and locations."""
+
+    def __init__(self, username: str = ""):
 
         SERVICE_ACCOUNT_FILE = os.path.join(
             MAIN_DIR, 'service-account-key.json')
@@ -119,15 +131,17 @@ class Drive:
         except Exception as e:
             raise GoogleCloudAuthError(e)
 
-    def get_location_directory(self, location: str) -> str:
-        query = f"fullText contains \"'{location}_'\" and mimeType = 'application/vnd.google-apps.folder'"
+        self.username = username
+
+    def get_location_directory_id(self, location: str, location_folder_id: str) -> str:
+        """Get Instagram Location's collected stories Google Drive folder ID."""
+        query = f"name contains \"'{location}_'\" and '{location_folder_id}' in parents and mimeType = 'application/vnd.google-apps.folder'"
 
         results = self.service.files().list(q=query).execute()
         folders = results.get('files', [])
 
         if not folders:
-            logger.info('No folders found.')
-            raise DriveLocationNotFound()
+            raise DriveLocationNotFound(location=location)
         else:
             location_directory = []
             for folder in folders:
@@ -210,6 +224,24 @@ class Drive:
         logger.info(f'Finished getting all {len(files)} files from drive')
         return files
 
+    def get_location_dashboard_folder_id(self) -> str:
+        """Get Client's Google Drive location-dashboard folder"""
+
+        query = f"fullText contains \"'{self.username}'\" and fullText contains \"'Dashboard_locations'\" and mimeType = 'application/vnd.google-apps.folder'"
+        results = self.service.files().list(q=query).execute()
+        folders = results.get('files', [])
+        if not folders:
+            raise DriveDashboardNotFound(username=self.username)
+        else:
+            location_directory = []
+            for folder in folders:
+                location_directory.append(folder['id'])
+                logger.debug(
+                    f'Found folder with the name: {folder["name"]} and the ID: {folder["id"]}')
+            if len(location_directory) > 1:
+                raise DriveMultipleFolders(folders, self.username)
+            return location_directory[0]
+
     def get_files(self, location: str,
                   start_year: int, start_month: int, start_day: int,
                   end_year: int, end_month: int, end_day: int) -> list:
@@ -218,8 +250,8 @@ class Drive:
         :return: list of files as dictionaries - [{id: ..., name: ...}, {id: ..., name: ...}, ... ]
         :exception: HttpError: Couldn't get files from Drive
         """
-
-        folder_id = self.get_location_directory(location)
+        location_folder_id = self.get_location_dashboard_folder_id()
+        folder_id = self.get_location_directory_id(location, location_folder_id)
 
         if not end_year or not end_month or not end_day:
             return self.get_files_at_date_in_folder(folder_id=folder_id,
@@ -331,9 +363,9 @@ class Drive:
 
         return results
 
-    def get_location_dates(self, location: str) -> list:
-        """Get location present stories dates"""
-        folder_id = self.get_location_directory(location=location)
+    def get_location_dates(self, location: str, location_folder_id: str) -> list:
+        """Get user's dates of collected location-stories"""
+        folder_id = self.get_location_directory_id(location=location, location_folder_id=location_folder_id)
         drive_files = self._get_files_in_folder(folder_id)
         location_dates = set()
         for file in drive_files:
@@ -342,13 +374,11 @@ class Drive:
 
         return sorted(list(location_dates))
 
-    def _get_locations(self, dashboard: str) -> list:
+    def _get_locations(self, location_folder_id: str) -> list:
         """
-        Get from Google Drive all Story-Story user's dashboard locations that were followed
-        and acquired Instagram Stories.
+        Get from user's Google Drive folder all locations that were followed and acquired Instagram Stories.
         """
-        directory_name = self.get_location_directory(dashboard)
-        query = f"'{directory_name}' in parents and mimeType = 'application/vnd.google-apps.folder'"
+        query = f"'{location_folder_id}' in parents and mimeType = 'application/vnd.google-apps.folder'"
         try:
 
             page_token = None
@@ -374,16 +404,17 @@ class Drive:
         logger.info(f'Locations in Drive: {location_folders}')
         return location_folders
 
-    def get_locations_and_dates(self, dashboard: str) -> list:
+    def get_locations_and_dates(self) -> list:
         """
         Get from Google Drive all Story-Story user's dashboard locations that were followed
         and acquired Instagram Stories and all dates that someone posted a story tagging that location.
         """
-        locations_folders = self._get_locations(dashboard=dashboard)
+        location_folder_id = self.get_location_dashboard_folder_id()
+        locations_folders = self._get_locations(location_folder_id)
         locations_and_dates = []
         for location_folder in locations_folders:
             location_name = location_folder.split('_')[0]
-            location_dates = self.get_location_dates(location_folder)
+            location_dates = self.get_location_dates(location_folder, location_folder_id)
             locations_and_dates.append(
                 {'name': location_name, 'location_dates': location_dates})
 

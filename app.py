@@ -76,11 +76,14 @@ def delete_song():
 def get_location_songs():
     data = request.get_json()  # Retrieve data from the request body
     location = data.get('location')
+    username = data.get('username')
     start_day, start_month, start_year = data.get('date').split('-')
     if not all([start_day, start_month, start_year]):
         return jsonify(error="Missing a date parameter ('start_day'/'start_month'/'start_year')."), 400
+    if not username:
+        return jsonify(error="Missing a username."), 400
     try:
-        recognized_songs_links = location_logic(location=location,
+        recognized_songs_links = location_logic(location=location, username=username,
                                                 day=int(start_day), month=int(start_month), year=int(start_year))
         return jsonify(recognized_songs_links)
     except Exception as e:
@@ -90,10 +93,10 @@ def get_location_songs():
 @app.route('/api/locations', methods=['POST'])
 def get_locations():
     data = request.get_json()
-    dashboard = data.get("dashboard")
-    drive = Drive()
+    username = data.get("username")
+    drive = Drive(username)
     try:
-        locations_and_dates = drive.get_locations_and_dates(dashboard)
+        locations_and_dates = drive.get_locations_and_dates()
     except Exception as e:
         return jsonify(error=str(e)), 500
     return jsonify(locations_and_dates)

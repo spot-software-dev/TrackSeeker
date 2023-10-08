@@ -4,6 +4,7 @@ from tests.test_tools import url_validator
 import datetime
 from logic import logic, location_logic
 
+USERNAME = "Yost Koen"
 YULA_BAR_USERNAME = 'yula.bar'
 SHAKED_BEN_BARUCH_USERNAME = 'shaked.b.b'
 SHAKED_WORK_USERNAME = 'shakedbbaruch'
@@ -32,7 +33,7 @@ def test_blank_logic(profile):
 
 
 def test_location_logic():
-    recognized_stories = location_logic(location=LOCATION2, day=26)
+    recognized_stories = location_logic(location=LOCATION2, username=USERNAME, day=26, month=8, year=2023)
     print(f"Recognized Stories: {recognized_stories}")
     first_story_url = recognized_stories[0]['drive_url']
     first_story_download_url = recognized_stories[0]['download_url']

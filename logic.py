@@ -81,13 +81,14 @@ def sync_stories_to_recognize():
         add_to_container_recognizer(drive_story_url)
 
 
-def location_logic(location: str,
+def location_logic(location: str, username: str,
                    day: int = date_now.day, month: int = date_now.month, year: int = date_now.year,
                    end_day: int = 0, end_month: int = 0, end_year: int = 0) -> list:
     """
     Get stories tagged with a certain location on a certain date with a track present in the database.
     (Can be used with consecutive dates - fill end date parameters for the consecutive dates functionality)
     :param location: Location name of tagged location stories
+    :param username: Client Username to search corresponding Google Drive Dashboard and ACRCloud Container
     :param day: Day of the date to search stories on (also the starting day of consecutive days)
     :param month: Month of the date to search stories on (also the starting month of consecutive days)
     :param year: Year of the date to search stories on (also the starting year of consecutive days)
@@ -100,7 +101,7 @@ def location_logic(location: str,
     stories_recognition_results = list_container_files_and_results()
     recognized_stories = [story for story in stories_recognition_results if story['results']]
 
-    drive = Drive()
+    drive = Drive(username)
     drive_files = drive.get_files(location,
                                   start_year=year, start_month=month, start_day=day,
                                   end_year=end_year, end_month=end_month, end_day=end_day)

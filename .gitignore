@@ -29,6 +29,7 @@ service-account-key.json
 DownloadedStories
 containers.json
 public-endpoint.json
+tests/test_instagram_bot_media/
 
 # Coverage reports
 htmlcov/

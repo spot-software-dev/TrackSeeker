@@ -88,3 +88,7 @@ def test_get_locations_and_dates(drive):
 def test_get_id_from_sharable_link(drive):
     track_id = drive.get_id_from_sharable_link(TEST_TRACK_LINK)
     assert track_id == TEST_TRACK_ID
+
+
+def test_get_today_main_stories_folder_files(drive):
+    drive.get_today_main_stories_folder_files()

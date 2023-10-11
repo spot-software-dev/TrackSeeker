@@ -8,11 +8,17 @@ import shutil
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
-from googleapiclient.http import MediaIoBaseDownload
+from googleapiclient.http import MediaIoBaseDownload, MediaFileUpload
 
-DOWNLOADED_STORIES_DIR = os.path.join(
-    os.path.abspath(os.curdir), 'DownloadedStories')
+DOWNLOADED_STORIES_DIR = os.path.join(os.path.abspath(os.curdir), 'DownloadedStories')
 os.makedirs(DOWNLOADED_STORIES_DIR, exist_ok=True)
+
+MAIN_DIR = os.path.dirname(os.path.abspath(__file__))
+FILE_DIR_PATH = os.path.join(MAIN_DIR, 'instagram_bot_media')
+STORIES_DIR_PATH = os.environ.get('STORIES_DIR_PATH', FILE_DIR_PATH)
+if not os.path.exists(STORIES_DIR_PATH):
+    os.makedirs(STORIES_DIR_PATH)
+    
 
 # If modifying these scopes, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/drive.metadata.readonly',
@@ -51,6 +57,17 @@ class DriveDownloadError(DriveError):
 
     def __str__(self):
         return self.message
+    
+class DriveUploadError(DriveError):
+    """Raised when encountered an error while uploading to Drive"""
+
+    def __init__(self, e):
+        self.message = f"Encountered an error while uploading to Drive: {e}"
+        logger.error(self.message)
+
+    def __str__(self):
+        return self.message
+
 
 
 class DriveMultipleFolders(DriveError):
@@ -89,6 +106,15 @@ class DriveShareableLinkError(DriveError):
     """Raised when could not retrieve the Drive file's shareable link."""
     def __init__(self):
         self.message = "Error: Unable to retrieve the shareable link.."
+
+    def __str__(self):
+        return self.message
+
+
+class DriveMainStoriesFolderError(DriveError):
+    """Raised when no folder was found for specified main-stories-folder."""
+    def __init__(self, username):
+        self.message = f"Didn't find main-stories-folder for user: {username}"
 
     def __str__(self):
         return self.message
@@ -420,3 +446,96 @@ class Drive:
                 {'name': location_name, 'location_dates': location_dates})
 
         return locations_and_dates
+    
+    def get_main_stories_folder_id(self):
+        query = f"fullText contains '{self.username} Stories' and mimeType = 'application/vnd.google-apps.folder'"
+        
+        results = self.service.files().list(q=query).execute()
+        folders = results.get('files', [])
+        if not folders:
+            raise DriveMainStoriesFolderError(username=self.username)
+        else:
+            location_directory = []
+            for folder in folders:
+                location_directory.append(folder['id'])
+                logger.debug(
+                    f'Found folder with the name: {folder["name"]} and the ID: {folder["id"]}')
+            if len(location_directory) > 1:
+                raise DriveMultipleFolders(folders, self.username)
+            return location_directory[0]
+
+    def get_today_main_stories_folder_files(self, main_stories_folder_id: str):
+        """Get from user's Google Drive main stories folder all today's stories"""
+
+        query = f"name contains '{date_now}' and '{main_stories_folder_id}' in parents and mimeType contains 'video/'"
+            
+        results = []
+        page_token = None
+
+        while True:
+            response = self.service.files().list(q=query,
+                                                 spaces='drive',
+                                                 fields='nextPageToken, files(id, name)',
+                                                 pageToken=page_token).execute()
+
+            files = response.get('files', [])
+            results.extend(files)
+
+            page_token = response.get('nextPageToken', None)
+            if page_token is None:
+                break
+
+        return results
+    
+    def get_today_locations_stories_usernames(self):
+        """
+        Get the locations and iterate over its files to get
+        the usernames of the stories that were uploaded today.
+        
+        returns [{"location": "pacha", "usernames": ["...", "...", "..."]}, {"location": ...}]
+        """
+        
+        locations_dashboard_id = self.get_location_dashboard_folder_id()
+        locations = self._get_locations(location_folder_id=locations_dashboard_id)
+        
+        usernames_to_download = []  
+        
+        for location in locations:
+            usernames_to_download.append({"location": location, "usernames": []})
+            location_folder_id = self.get_location_directory_id(location=location, location_folder_id=locations_dashboard_id)
+            location_files = self.get_files_at_date_in_folder(folder_id=location_folder_id)
+
+            for file in location_files:
+                
+                username_by_file = os.path.splitext(file['name'].split('-')[-1])[0]
+                usernames_to_download[-1]['usernames'].append(username_by_file)
+
+        return usernames_to_download
+    
+
+    def upload_story(self, folder_id: str, story_metadata: list, username: str, location: str):
+        
+        story_id = story_metadata['id']
+        story_name = f"{location}-{date_now}-{story_id}-{username}"
+        
+        file_path = os.path.join(STORIES_DIR_PATH, f'{story_name}.mp4')
+        
+        media = MediaFileUpload(file_path, mimetype='video/mp4')
+        
+        file_metadata = {
+            'name': story_name,
+            'parents': [folder_id]
+        }
+        
+        logger.info(f'Trying to upload {story_name} to Drive folder {folder_id}...')
+        
+        try:
+            response = self.service.files().create(body=file_metadata, media_body=media, fields='id').execute()
+            
+        except HttpError as e:
+            raise DriveUploadError(f'Error uploading {story_name}: {str(e)}')
+
+        uploaded_file_id = response.get('id')
+            
+        if uploaded_file_id:
+            logger.success(f'Successfully uploaded {story_name} to Drive with ID: {uploaded_file_id}')

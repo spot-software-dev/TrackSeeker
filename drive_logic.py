@@ -10,15 +10,10 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from googleapiclient.http import MediaIoBaseDownload, MediaFileUpload
 
+from instagram_bot import STORIES_DIR_PATH
+
 DOWNLOADED_STORIES_DIR = os.path.join(os.path.abspath(os.curdir), 'DownloadedStories')
 os.makedirs(DOWNLOADED_STORIES_DIR, exist_ok=True)
-
-MAIN_DIR = os.path.dirname(os.path.abspath(__file__))
-FILE_DIR_PATH = os.path.join(MAIN_DIR, 'instagram_bot_media')
-STORIES_DIR_PATH = os.environ.get('STORIES_DIR_PATH', FILE_DIR_PATH)
-if not os.path.exists(STORIES_DIR_PATH):
-    os.makedirs(STORIES_DIR_PATH)
-    
 
 # If modifying these scopes, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/drive.metadata.readonly',

@@ -18,7 +18,7 @@ def get_story_user(story_name: str) -> str:
     return os.path.splitext(story_name.split("-")[-1])[0]
 
 
-def get_story_id_from_name(story: list) -> str:
+def get_story_id_from_name(story: dict) -> str:
     """
     pacha-2023-10-11T9999999-thequeenikalala.mp4   ->   T9999999
     """

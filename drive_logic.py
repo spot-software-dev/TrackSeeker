@@ -52,7 +52,8 @@ class DriveDownloadError(DriveError):
 
     def __str__(self):
         return self.message
-    
+
+
 class DriveUploadError(DriveError):
     """Raised when encountered an error while uploading to Drive"""
 
@@ -62,7 +63,6 @@ class DriveUploadError(DriveError):
 
     def __str__(self):
         return self.message
-
 
 
 class DriveMultipleFolders(DriveError):
@@ -135,18 +135,18 @@ class Drive:
                 'Trying to authenticated Google Cloud service...')
             
             if not os.path.exists(SERVICE_ACCOUNT_FILE):
-                logger.warning('Google authenication key was not found')
+                logger.warning('Google authentication key was not found')
                 logger.info('Trying to generate a new key...')
                 
                 google_key_generate()
                 
-                logger.success('Generated a new authenication key file.')
+                logger.success('Generated a new authentication key file.')
 
             credentials = service_account.Credentials.from_service_account_file(
                 SERVICE_ACCOUNT_FILE, scopes=SCOPES)
 
             self.service = build(API_NAME, API_VERSION,
-                                     credentials=credentials)
+                                 credentials=credentials)
 
             logger.success('Google Cloud service account is authenticated.')
 
@@ -506,7 +506,6 @@ class Drive:
                 usernames_to_download[-1]['usernames'].append(username_by_file)
 
         return usernames_to_download
-    
 
     def upload_story(self, folder_id: str, story_metadata: list, username: str, location: str):
         

@@ -91,7 +91,8 @@ class IGBOT:
             raise IGGetError(response.text)
         return response.json()['user']
 
-    def download_story(self, story_metadata: list, username: str, location: str) -> list:
+    @staticmethod
+    def download_story(story_metadata: dict, username: str, location: str) -> dict:
         """Download story to a temp folder and add name and download path to story metadata for Drive upload"""
         download_url = story_metadata['download_url']
         story_id = story_metadata['id']
@@ -112,11 +113,10 @@ class IGBOT:
             story_metadata['name'] = story_name
             return story_metadata
 
-
         except Exception as e:
             raise IGDownloadError(e)
 
-    def get_user_stories_metadata(self, username: str) -> dict:
+    def get_user_stories_metadata(self, username: str) -> list[dict[str, str]]:
         """
         Download user stories (named with its ID) and return each story ID with its story JSON
         """
@@ -147,7 +147,7 @@ class IGBOT:
                 for story in response.json()['reels'][user_id]['items']:
                     if story.get('has_audio'):
                         story_url = story['video_versions'][0]['url']
-                        user_stories_metadata.append({"id" : story['id'], "download_url": story_url})
+                        user_stories_metadata.append({"id": story['id'], "download_url": story_url})
             else:
                 # TODO: Change the logger message. It is not necessarily true that the user has no stories
                 logger.info(

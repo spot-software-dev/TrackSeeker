@@ -99,7 +99,7 @@ class IGBOT:
         story_name = f"{location}-{date_now}-{story_id}-{username}.mp4"
         file_path = os.path.join(STORIES_DIR_PATH, story_name)
         
-        logger.debug(f'Trying to download story {story_name}...')
+        logger.info(f'Trying to download story {story_name}...')
         
         try:
 

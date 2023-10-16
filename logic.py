@@ -6,6 +6,7 @@ from instagram_bot import IGBOT, STORIES_DIR_PATH
 from music_recognition import recognize, MusicRecognitionError
 from music_recognition import list_container_files_and_results, add_to_container_recognizer
 from drive_logic import Drive
+import time
 
 MAIN_DIR = os.path.dirname(os.path.abspath(__file__))
 date_now = datetime.date.today()
@@ -39,23 +40,31 @@ def sync_user_stories():
     that hasn't been uploaded yet to the main Drive stories folder
     and add them to user's main Drive stories folder.
     """
-    spot_stories_today_videos = drive.get_today_spot_stories_dir_videos()
-    spot_stories_id = [get_story_id_from_name(story=story) for story in spot_stories_today_videos]
     today_usernames_by_locations = drive.get_today_locations_stories_usernames(locations_dir_id=drive.STORY_STORY_LOCATIONS_DIR_ID)
+    spot_stories_locations_dirs = drive.get_spot_locations_dirs()
+    spot_stories_locations_names = [location['name'] for location in spot_stories_locations_dirs]
+
     for usernames_by_location in today_usernames_by_locations:
-        location_name_with_id = usernames_by_location['location']
-        location_name = location_name_with_id.split('_')[0]
+        location_name = usernames_by_location['location']
         usernames = usernames_by_location['usernames']
+
+        if location_name not in spot_stories_locations_names:
+            drive.create_drive_dir(dir_name=location_name, parent_dir_id=drive.SPOT_LOCATIONS_DIR_ID)
+            time.sleep(5)
+        
+        location_dir_id = drive.get_dir_id_with_parent(dir_name=location_name, parent_dir_id=drive.SPOT_LOCATIONS_DIR_ID)
+        location_dir_videos = drive.get_all_videos_from_dir(dir_id=location_dir_id)
+        location_dir_stories_id = [get_story_id_from_name(story=story) for story in location_dir_videos]
 
         for user_name in usernames:
             user_stories_metadata = instagram_bot.get_user_stories_metadata(username=user_name)
             for story_metadata in user_stories_metadata:
-                if story_metadata['id'] in spot_stories_id:
+                if story_metadata['id'] in location_dir_stories_id:
                     logger.debug(f"Story already exists in Drive, Story ID: {story_metadata['id']}")
-                    spot_stories_id.remove(story_metadata['id'])
+                    location_dir_stories_id.remove(story_metadata['id'])
                 else:
                     instagram_bot.download_story(story_metadata=story_metadata, username=user_name, location=location_name)
-                    drive.upload_story_for_sync(dir_id=drive.SPOT_LOCATIONS_DIR_ID, story_metadata=story_metadata, username=user_name, location=location_name)
+                    drive.upload_story_for_sync(dir_id=location_dir_id, story_metadata=story_metadata, username=user_name, location=location_name)
 
     logger.info('Clearing stories directory...')
     instagram_bot.clean_stories_directory()

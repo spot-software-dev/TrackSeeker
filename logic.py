@@ -85,7 +85,7 @@ def get_acrcloud_ids_from_drive_id(drive_id: str) -> list:
 
 def get_stories_not_in_acrcloud_container() -> list:
     """Get all stories in Google Drive that are not yet in ACRCloud container"""
-    drive_files = drive.get_all_videos()
+    drive_files = drive.get_all_spot_videos()
     acrcloud_recognition_results = list_container_files_and_results()
     acrcloud_files_urls = [story_recognition['drive_url'] for story_recognition in acrcloud_recognition_results]
     acrcloud_files_ids = [drive.get_id_from_sharable_link(acrcloud_file_url) for acrcloud_file_url in acrcloud_files_urls]

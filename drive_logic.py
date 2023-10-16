@@ -260,15 +260,17 @@ class Drive:
 
         return files
 
-    def get_all_videos(self):
+    def get_all_spot_videos(self):
         """
-        Get all drive files.
-        :return: list of files as dictionaries - [{id: ..., name: ...}, {id: ..., name: ...}, ... ]
+        Get all spot locations stories Drive videos.
+        :return: list of videos as dictionaries - [{id: ..., name: ...}, {id: ..., name: ...}, ... ]
         :exception: HttpError: Couldn't get files from Drive
         """
-        query = self.build_get_videos_from_dir_query()
-        all_videos = self.get_files_from_dir(query=query)
-
+        spot_locations = self.get_dirs_in_parent_dir(self.SPOT_LOCATIONS_DIR_ID)
+        all_videos = []
+        for location in spot_locations:
+            location_stories = self.get_all_videos_from_dir(location['id'])
+            all_videos += location_stories
         return all_videos
 
     def get_all_videos_from_dir(self, dir_id: str):

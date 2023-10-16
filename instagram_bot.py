@@ -57,11 +57,12 @@ class IGBOT:
         """
         Discover user ID from given username
         """
-        url = "https://instagram-scraper-2022.p.rapidapi.com/ig/user_id/"
-        querystring = {"user": username}
+        url = "https://instagram-scraper-api2.p.rapidapi.com/v1/info"
+        querystring = {"username_or_id_or_url": username}
+
         headers = {
             "X-RapidAPI-Key": os.environ.get("X_RAPID_API_KEY"),
-            "X-RapidAPI-Host": os.environ.get("X_RAPID_API_HOST")
+            "X-RapidAPI-Host": "instagram-scraper-api2.p.rapidapi.com"
         }
 
         self.fix_request_time()
@@ -72,17 +73,18 @@ class IGBOT:
 
         if not response.ok:
             raise IGGetError(response.text)
-        return response.json()['id']
+        return response.json()['data']['id']
 
     def get_userinfo(self, id_user: str) -> dict:
         """
         Discover user info (like username) from given user ID
         """
-        url = "https://instagram-scraper-2022.p.rapidapi.com/ig/info/"
-        querystring = {"id_user": id_user}
+        url = "https://instagram-scraper-api2.p.rapidapi.com/v1/info"
+        querystring = {"username_or_id_or_url": id_user}
+
         headers = {
             "X-RapidAPI-Key": os.environ.get("X_RAPID_API_KEY"),
-            "X-RapidAPI-Host": os.environ.get("X_RAPID_API_HOST")
+            "X-RapidAPI-Host": "instagram-scraper-api2.p.rapidapi.com"
         }
 
         self.fix_request_time()
@@ -93,7 +95,7 @@ class IGBOT:
 
         if not response.ok:
             raise IGGetError(response.text)
-        return response.json()['user']
+        return response.json()['data']
 
     def download_story(self, story_metadata: dict, username: str, location: str) -> dict:
         """Download story to a temp folder and add name and download path to story metadata for Drive upload"""
@@ -126,13 +128,11 @@ class IGBOT:
         Download user stories (named with its ID) and return each story ID with its story JSON
         """
 
-        user_id = self.get_user_id(username=username)
-
-        url = "https://instagram-scraper-2022.p.rapidapi.com/ig/stories/"
-        querystring = {"id_user": user_id}
+        url = "https://instagram-scraper-api2.p.rapidapi.com/v1/stories"
+        querystring = {"username_or_id_or_url": username}
         headers = {
             "X-RapidAPI-Key": os.environ.get("X_RAPID_API_KEY"),
-            "X-RapidAPI-Host": os.environ.get("X_RAPID_API_HOST")
+            "X-RapidAPI-Host": "instagram-scraper-api2.p.rapidapi.com"
         }
 
         self.fix_request_time()
@@ -145,15 +145,15 @@ class IGBOT:
             if "Something went wrong" in response.text:
                 raise IGMetaDataError(response.text)
             user_stories_metadata = []
-            if response.json().get('reels'):
-                for story in response.json()['reels'][user_id]['items']:
+            if response.json().get('data'):
+                for story in response.json()['data']['items']:
                     if story.get('has_audio'):
                         story_url = story['video_versions'][0]['url']
                         user_stories_metadata.append({"id": story['id'], "download_url": story_url})
             else:
                 # TODO: Change the logger message. It is not necessarily true that the user has no stories
                 logger.info(
-                    f"User has no stories. User ID: {user_id} Username: {username}")
+                    f"User has no stories. Username: {username}")
             return user_stories_metadata
         else:
             raise IGMetaDataError(response.text)

@@ -400,6 +400,12 @@ class Drive:
 
         return usernames_to_download
 
+    def get_spot_locations_dirs(self):
+        """Gets all the location directories inside Spot Stories"""
+
+        location_dirs = self.get_dirs_in_parent_dir(parent_dir_id=self.SPOT_LOCATIONS_DIR_ID)
+        return location_dirs
+
     def get_today_spot_stories_dir_videos(self):
         """Get from user's Google Drive main stories folder all today's stories"""
 

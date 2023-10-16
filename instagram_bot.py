@@ -7,6 +7,7 @@ import xmltodict
 from dotenv.main import load_dotenv
 load_dotenv()
 
+RAPID_API_TIME_LIMIT = 1
 MAIN_DIR = os.path.dirname(os.path.abspath(__file__))
 FILE_DIR_PATH = os.path.join(MAIN_DIR, 'instagram_bot_media')
 STORIES_DIR_PATH = os.environ.get('STORIES_DIR_PATH', FILE_DIR_PATH)
@@ -42,6 +43,16 @@ class IGBOT:
     def __init__(self):
         self.last_request_time = time.time()
 
+    def fix_request_time(self):
+        wiggle_room_sec = 0.5 
+        time_now = time.time()
+        time_difference = time_now - self.last_request_time
+        if time_difference < RAPID_API_TIME_LIMIT + wiggle_room_sec:
+            # RAPID API allows 1 request per second
+            time.sleep(RAPID_API_TIME_LIMIT + wiggle_room_sec - time_difference)
+
+        self.last_request_time = time.time()
+
     def get_user_id(self, username: str) -> str:
         """
         Discover user ID from given username
@@ -53,11 +64,7 @@ class IGBOT:
             "X-RapidAPI-Host": os.environ.get("X_RAPID_API_HOST")
         }
 
-        time_now = time.time()
-        time_difference = time_now - self.last_request_time
-        if time_difference < 1:
-            # RAPID API allows 1 request per second
-            time.sleep(1 - time_difference)
+        self.fix_request_time()
 
         response = requests.get(url, headers=headers, params=querystring)
 
@@ -78,10 +85,7 @@ class IGBOT:
             "X-RapidAPI-Host": os.environ.get("X_RAPID_API_HOST")
         }
 
-        time_now = time.time()
-        time_difference = time_now - self.last_request_time
-        if time_difference < 1:
-            time.sleep(1 - time_difference)
+        self.fix_request_time()
 
         response = requests.get(url, headers=headers, params=querystring)
 
@@ -91,22 +95,23 @@ class IGBOT:
             raise IGGetError(response.text)
         return response.json()['user']
 
-    @staticmethod
-    def download_story(story_metadata: dict, username: str, location: str) -> dict:
+    def download_story(self, story_metadata: dict, username: str, location: str) -> dict:
         """Download story to a temp folder and add name and download path to story metadata for Drive upload"""
         download_url = story_metadata['download_url']
         story_id = story_metadata['id']
         story_name = f"{location}-{date_now}-{story_id}-{username}.mp4"
         file_path = os.path.join(STORIES_DIR_PATH, story_name)
-        
+
+        self.fix_request_time()
+
         logger.info(f'Trying to download story {story_name}...')
-        
+
         try:
 
             with open(file_path, "wb") as f:
                 response = requests.get(download_url)
                 f.write(response.content)
-            
+
             logger.success(f'Downloaded story {story_name} successfully.')
 
             story_metadata['path'] = file_path
@@ -130,10 +135,7 @@ class IGBOT:
             "X-RapidAPI-Host": os.environ.get("X_RAPID_API_HOST")
         }
 
-        time_now = time.time()
-        time_difference = time_now - self.last_request_time
-        if time_difference < 1:
-            time.sleep(1 - time_difference)
+        self.fix_request_time()
 
         response = requests.get(url, headers=headers, params=querystring)
 
@@ -165,10 +167,7 @@ class IGBOT:
             "X-RapidAPI-Host": os.environ.get("X_RAPID_API_HOST")
         }
 
-        time_now = time.time()
-        time_difference = time_now - self.last_request_time
-        if time_difference < 1:
-            time.sleep(1 - time_difference)
+        self.fix_request_time()
 
         response = requests.get(url, headers=headers, params=querystring)
 

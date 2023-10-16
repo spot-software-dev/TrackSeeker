@@ -63,6 +63,17 @@ class DriveUploadError(DriveError):
         return self.message
 
 
+class DriveCreateDirError(DriveError):
+    """Raised when encountered an error while creating a Drive directory"""
+
+    def __init__(self, e):
+        self.message = f"Encountered an error while creating a Drive directory: {e}"
+        logger.error(self.message)
+
+    def __str__(self):
+        return self.message
+
+
 class DriveMultipleDirs(DriveError):
     """Raised when found multiple folders while searching the specified folder."""
 
@@ -234,11 +245,11 @@ class Drive:
                 if not items:
                     logger.info('No files found.')
                     return []
-                
+
                 files.extend([{"id": item["id"], "name": item["name"], 'created_time': item["createdTime"]} for item in items])
                 page_token = results.get('nextPageToken', None)
                 logger.info(f'Found {len(files)} files.')
-                
+
                 if page_token is None:
                     break
 
@@ -422,6 +433,26 @@ class Drive:
 
         if uploaded_file_id:
             logger.success(f'Successfully uploaded {story_name} to Drive with ID: {uploaded_file_id}')
+
+    def create_drive_dir(self, dir_name, parent_dir_id):
+        """Creating a directory in google drive by parent_dir_id"""
+
+        dir_metadata = {
+            'name': dir_name,
+            'parents': [parent_dir_id],
+            'mimeType': 'application/vnd.google-apps.folder'
+        }
+
+        logger.info(f'Trying to create directory {dir_name} to parent directory id {parent_dir_id}...')
+
+        try:
+            drive_dir = self.service.files().create(body=dir_metadata, fields='id').execute()
+        except HttpError as e:
+            raise DriveCreateDirError(e)
+
+        new_dir_id = drive_dir.get('id')
+        if new_dir_id:
+            logger.success(f'Successfully created directory {dir_name} to parent directory id {parent_dir_id}...')
 
     @staticmethod
     def get_video_link(file_id: str) -> str:

@@ -9,6 +9,7 @@ from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from googleapiclient.http import MediaIoBaseDownload, MediaFileUpload
+from ssl import SSLWantWriteError
 
 from instagram_bot import STORIES_DIR_PATH
 
@@ -414,33 +415,75 @@ class Drive:
         videos = self.get_videos_at_date_from_dir(dir_id=self.SPOT_LOCATIONS_DIR_ID)
         return videos
 
+    def _upload_story_for_sync_in_chunks(self, dir_id: str, story_metadata: dict, username: str, location: str):
+
+        story_id = story_metadata['id']
+        story_file_name = f"{location}-{self.date_now}-{story_id}-{username}.mp4"
+
+        file_path = os.path.join(STORIES_DIR_PATH, story_file_name)
+
+        # Create a resumable upload session
+        media = MediaFileUpload(file_path, mimetype='video/mp4', chunksize=1024 * 1024, resumable=True)
+
+        file_metadata = {
+            'name': story_file_name,
+            'parents': [dir_id]
+        }
+
+        logger.info(f'Trying to upload {story_file_name} to Drive directory {dir_id}...')
+
+        try:
+            request = self.service.files().create(
+                body=file_metadata, media_body=media, fields='id')
+
+            response = None
+            while response is None:
+                status, response = request.next_chunk()
+                if status:
+                    logger.debug(f'Uploaded {int(status.progress() * 100)}%')
+
+        except HttpError as e:
+            raise DriveUploadError(f'Error uploading {story_file_name}: {str(e)}')
+        else:
+            uploaded_file_id = response.get('id')
+            if uploaded_file_id:
+                logger.success(f'Successfully uploaded {story_file_name} to Drive with ID: {uploaded_file_id}')
+
     def upload_story_for_sync(self, dir_id: str, story_metadata: dict, username: str, location: str):
 
         story_id = story_metadata['id']
-        story_name = f"{location}-{self.date_now}-{story_id}-{username}"
+        story_file_name = f"{location}-{self.date_now}-{story_id}-{username}.mp4"
 
-        file_path = os.path.join(STORIES_DIR_PATH, f'{story_name}.mp4')
+        file_path = os.path.join(STORIES_DIR_PATH, story_file_name)
 
         media = MediaFileUpload(file_path, mimetype='video/mp4')
 
         file_metadata = {
-            'name': story_name,
+            'name': story_file_name,
             'parents': [dir_id]
         }
 
-        logger.info(f'Trying to upload {story_name} to Drive directory {dir_id}...')
+        logger.info(f'Trying to upload {story_file_name} to Drive directory {dir_id}...')
 
         try:
             response = self.service.files().create(
                 body=file_metadata, media_body=media, fields='id').execute()
 
         except HttpError as e:
-            raise DriveUploadError(f'Error uploading {story_name}: {str(e)}')
+            raise DriveUploadError(f'Error uploading {story_file_name}: {str(e)}')
+        except SSLWantWriteError as e:
+            logger.warning(f'Received SSLWantWriteError: {e}')
+            self._upload_story_for_sync_in_chunks(dir_id, story_metadata, username, location)
+            return
+        except TimeoutError as e:
+            logger.warning(f'Received SSL error Timeout: {e}')
+            self._upload_story_for_sync_in_chunks(dir_id, story_metadata, username, location)
+            return
 
-        uploaded_file_id = response.get('id')
-
-        if uploaded_file_id:
-            logger.success(f'Successfully uploaded {story_name} to Drive with ID: {uploaded_file_id}')
+        else:
+            uploaded_file_id = response.get('id')
+            if uploaded_file_id:
+                logger.success(f'Successfully uploaded {story_file_name} to Drive with ID: {uploaded_file_id}')
 
     def create_drive_dir(self, dir_name, parent_dir_id):
         """Creating a directory in google drive by parent_dir_id"""

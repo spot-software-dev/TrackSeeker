@@ -24,7 +24,7 @@ def bot():
     return IGBOT()
 
 
-@pytest.fixture()
+@pytest.fixture
 def setup():
     # Happens before test
     if os.listdir(STORIES_TESTS_DIR):

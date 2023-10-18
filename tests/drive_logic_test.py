@@ -3,13 +3,14 @@ import os.path
 import time
 import datetime
 from .test_tools import url_validator, date_validator
-from ..drive_logic import Drive, DriveFolderNotFound
+from ..drive_logic import Drive, DriveFolderNotFound, STORIES_DIR_PATH
 from ..instagram_bot import IGBOT
 
 TEST_TRACK_ID = "1LwTsb1fsXpT9TkWcMAWWboxoF5kqcSzA"
 TEST_TRACK_LINK = f'https://drive.google.com/file/d/{TEST_TRACK_ID}/view?usp=sharing'
 LOCATION = 'Destino Ibiza'
-LOCATION_DIR_ID = "1qdjeWMxkmKr-T1V2HFXPIoHR-OFNzQC_"
+LOCATION_DIR_ID = "1qdjeWMxkmKr-T1V2HFXPIoHR-OFNzQC_"  # Story-Story Location ID (Destino Ibiza)
+LOCATION_DIR_ID_SPOT = '1VkEfQc91ezbW95rvXSeG1iClyQ_Up2lF' # Spot Location ID (Destino Ibiza)
 LOCATION2 = "Art Club"
 NON_EXISTENT_LOCATION = 'RISHON_LETZION'
 EXISTENT_LOCATION_NAME = LOCATION
@@ -22,6 +23,47 @@ TODAY_DATE = datetime.datetime.today().date()
 @pytest.fixture
 def drive():
     return Drive()
+
+
+@pytest.fixture
+def delete_test_setup(drive):
+    test_story = {'location': LOCATION, 'username': 'shaked.b.b', 'id': '9999999999_999999'}
+
+    # Make dummy file to upload
+    file_name = f"{test_story['location']}-{drive.date_now}-{test_story['id']}-{test_story['username']}.mp4"
+    with open(os.path.join(STORIES_DIR_PATH, file_name), 'wb') as f:
+        f.write("LOREM IPSUM".encode())
+
+    # Show that the test story is not in today's stories
+    today_stories = drive.get_all_videos_from_dir(LOCATION_DIR_ID_SPOT)
+    today_stories_names = [story['name'] for story in today_stories]
+
+    assert file_name not in today_stories_names
+
+    # Upload file
+    drive.upload_story_for_sync(dir_id=LOCATION_DIR_ID_SPOT, story_metadata=test_story,
+                                username=test_story['username'], location=test_story['location'])
+    time.sleep(5)  # Wait so that Google Drive will show the uploaded video once we search today's videos
+
+    # Check uploaded file's existence in Google Drive
+    today_stories_after_upload = drive.get_all_videos_from_dir(LOCATION_DIR_ID_SPOT)
+    today_stories_names_after_upload = [story['name'] for story in today_stories_after_upload]
+    assert file_name in today_stories_names_after_upload
+
+    # Find uploaded story Google Drive ID
+    uploaded_story_drive_id = ""
+    for story in today_stories_after_upload:
+        if story['name'] == file_name:
+            uploaded_story_drive_id = story['id']
+
+    fixture_data = {
+        'uploaded_story_drive_id': uploaded_story_drive_id,
+        'file_name': file_name,
+        'test_story': test_story,
+        'drive_obj': drive
+    }
+    return fixture_data
+
 
 # Build query
 # Dir query
@@ -221,3 +263,20 @@ def test_upload_story_for_sync(drive):
     time.sleep(15)
     videos_in_spot_dir = drive.get_videos_at_date_from_dir(dir_id=drive.SPOT_LOCATIONS_DIR_ID)
     assert story_name in [video['name'] for video in videos_in_spot_dir]
+
+
+# Delete video
+
+def test_delete_file(drive, delete_test_setup):
+    stories = drive.get_all_videos_from_dir(LOCATION_DIR_ID_SPOT)
+
+    # Delete file
+    drive.delete_file(delete_test_setup['uploaded_story_drive_id'])
+
+    time.sleep(5)  # Wait so that Google Drive will not show the deleted video once we search today's videos again
+
+    # Check deleted file's absence in Google Drive
+    stories_after_deletion = drive.get_all_videos_from_dir(LOCATION_DIR_ID_SPOT)
+    stories_names_after_deletion = [story['name'] for story in stories_after_deletion]
+    assert delete_test_setup['file_name'] not in stories_names_after_deletion
+    assert len(stories) - len(stories_after_deletion) == 1

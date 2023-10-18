@@ -2,7 +2,7 @@ import pytest
 import os.path
 from tests.test_tools import url_validator
 import datetime
-from logic import logic, location_logic
+from logic import location_logic
 
 USERNAME = "Yost Koen"
 YULA_BAR_USERNAME = 'yula.bar'

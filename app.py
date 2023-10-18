@@ -2,7 +2,7 @@ from flask import Flask, jsonify, request, render_template
 from flask_cors import CORS, cross_origin
 from flask_mail import Mail, Message
 from config import Config
-from logic import logic, location_logic
+from logic import location_logic
 from music_recognition import get_human_readable_db, upload_to_db_protected, delete_id_from_db_protected_for_web
 from drive_logic import Drive
 app = Flask(__name__)
@@ -11,6 +11,9 @@ app.config.from_object(Config)
 
 mail = Mail(app)
 cors = CORS(app)
+
+
+drive = Drive()
 
 
 @app.route('/api/data', methods=['GET'])
@@ -46,7 +49,7 @@ def upload_song():
     title = request.form.get("title")
     artist = request.form.get("artist")
     album = request.form.get("album")
-    
+
     if not all([audio_file, title, artist]):
         return jsonify(error="Missing required parameters."), 400
 
@@ -77,15 +80,13 @@ def delete_song():
 def get_location_songs():
     data = request.get_json()  # Retrieve data from the request body
     location = data.get('location')
-    username = data.get('username')
     start_day, start_month, start_year = data.get('date').split('-')
+
     if not all([start_day, start_month, start_year]):
         return jsonify(error="Missing a date parameter ('start_day'/'start_month'/'start_year')."), 400
-    if not username:
-        return jsonify(error="Missing a username."), 400
+
     try:
-        recognized_songs_links = location_logic(location=location, username=username,
-                                                day=int(start_day), month=int(start_month), year=int(start_year))
+        recognized_songs_links = location_logic(location=location, day=int(start_day), month=int(start_month), year=int(start_year))
         return jsonify(recognized_songs_links)
     except Exception as e:
         return jsonify(error=str(e)), 500
@@ -93,11 +94,8 @@ def get_location_songs():
 
 @app.route('/api/locations', methods=['POST'])
 def get_locations():
-    data = request.get_json()
-    username = data.get("username")
-    drive = Drive(username)
     try:
-        locations_and_dates = drive.get_locations_and_dates()
+        locations_and_dates = drive.get_locations_and_dates(locations_dir_id=drive.SPOT_LOCATIONS_DIR_ID)
     except Exception as e:
         return jsonify(error=str(e)), 500
     return jsonify(locations_and_dates)
@@ -109,7 +107,7 @@ def send_email():
     recipients = data.get('recipients')
     subject = f"New Location Request! from {data.get('fullname')}"
     message_body = render_template('email_template.html', subject=subject, fullname=data.get('fullname'), email=data.get('email'), locationWanted=data.get('locationWanted'))
-    
+
     if not recipients or not isinstance(recipients, list):
         return jsonify(error="Invalid recipients data, should send an array."), 400
 

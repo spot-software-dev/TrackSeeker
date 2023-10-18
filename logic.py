@@ -11,34 +11,54 @@ MAIN_DIR = os.path.dirname(os.path.abspath(__file__))
 date_now = datetime.date.today()
 logger.add(os.path.join(MAIN_DIR, 'logs', 'music_recognition', f"music_recognition_{date_now}.log"), rotation="1 day")
 
+instagram_bot = IGBOT()
+drive = Drive()
 
-def logic(username: str) -> list:
+
+def get_story_user(story_name: str) -> str:
+    """Get the username of the user that uploaded the story"""
+    return os.path.splitext(story_name.split("-")[-1])[0]
+
+
+def get_story_id_from_name(story: dict) -> str:
     """
-    Recognize tracks in database that an Instagram user uploaded to their story.
-
-    :param username: Name of the Instagram user to search its stories
-    :return: List of recognized tracks that exist in the database and in a user story
+    pacha-2023-10-11T9999999-thequeenikalala.mp4   ->   T9999999
     """
-    instagram_bot = IGBOT()
-    user_id = instagram_bot.get_user_id(username)
-    stories_music = instagram_bot.download_user_stories(user_id)
-    recognised_tracks = []
-    for story_id, story_metadata in stories_music.items():
-        try:
-            recognition_results = recognize(os.path.join(STORIES_DIR_PATH, f'{story_id}.mp3'))
-            if recognition_results:
-                for recognition in recognition_results:
-                    recognised_tracks.append({
-                        'title': recognition['title'],
-                        'artist': story_metadata.get('artist'),
-                        'album': story_metadata.get('album')
-                    })
-        except MusicRecognitionError as e:
-            logger.critical(f"Error occurred while recognizing music from story ({story_id}.mp3)\n\tError message: {e}")
-            # TODO: Display error message to user and ask to re-enter the file or reach support
-            continue
+    story_name = story['name']
+    story_id = story_name.split('-')[-2]
 
-    return recognised_tracks
+    return story_id
+
+
+def sync_user_stories():
+    """
+    Add each of today's Instagram location story user's stories that hasn't been uploaded yet to user's Drive
+
+    Get a list of users from user's Google Drive Dashboard_locations,
+    download by Instagram username all their currently uploaded stories
+    that hasn't been uploaded yet to the main Drive stories folder
+    and add them to user's main Drive stories folder.
+    """
+    spot_stories_today_videos = drive.get_today_spot_stories_dir_videos()
+    spot_stories_id = [get_story_id_from_name(story=story) for story in spot_stories_today_videos]
+    today_usernames_by_locations = drive.get_today_locations_stories_usernames(locations_dir_id=drive.STORY_STORY_LOCATIONS_DIR_ID)
+    for usernames_by_location in today_usernames_by_locations:
+        location_name_with_id = usernames_by_location['location']
+        location_name = location_name_with_id.split('_')[0]
+        usernames = usernames_by_location['usernames']
+
+        for user_name in usernames:
+            user_stories_metadata = instagram_bot.get_user_stories_metadata(username=user_name)
+            for story_metadata in user_stories_metadata:
+                if story_metadata['id'] in spot_stories_id:
+                    logger.debug(f"Story already exists in Drive, Story ID: {story_metadata['id']}")
+                    spot_stories_id.remove(story_metadata['id'])
+                else:
+                    instagram_bot.download_story(story_metadata=story_metadata, username=user_name, location=location_name)
+                    drive.upload_story_for_sync(dir_id=drive.SPOT_LOCATIONS_DIR_ID, story_metadata=story_metadata, username=user_name, location=location_name)
+
+    logger.info('Clearing stories directory...')
+    instagram_bot.clean_stories_directory()
 
 
 def get_acrcloud_ids_from_drive_id(drive_id: str) -> list:
@@ -46,7 +66,8 @@ def get_acrcloud_ids_from_drive_id(drive_id: str) -> list:
     container_files = list_container_files_and_results()
     acrcloud_ids = []
     for container_file in container_files:
-        container_file_drive_id = Drive.get_id_from_sharable_link(container_file['drive_url'])
+        container_file_drive_id = Drive.get_id_from_sharable_link(
+            container_file['drive_url'])
         if drive_id == container_file_drive_id:
             acrcloud_ids.append(container_file['acrcloud_id'])
 
@@ -55,8 +76,7 @@ def get_acrcloud_ids_from_drive_id(drive_id: str) -> list:
 
 def get_stories_not_in_acrcloud_container() -> list:
     """Get all stories in Google Drive that are not yet in ACRCloud container"""
-    drive = Drive()
-    drive_files = drive.get_all_files()
+    drive_files = drive.get_all_videos()
     acrcloud_recognition_results = list_container_files_and_results()
     acrcloud_files_urls = [story_recognition['drive_url'] for story_recognition in acrcloud_recognition_results]
     acrcloud_files_ids = [drive.get_id_from_sharable_link(acrcloud_file_url) for acrcloud_file_url in acrcloud_files_urls]
@@ -74,14 +94,15 @@ def get_stories_not_in_acrcloud_container() -> list:
 
 def sync_stories_to_recognize():
     """Upload stories in Google Drive that are not yet in ACRCloud container."""
-    logger.info("Synchronizing ACRCloud stories with the stories saved in Google Drive")
+    logger.info(
+        "Synchronizing ACRCloud stories with the stories saved in Google Drive")
     drive_stories_to_add = get_stories_not_in_acrcloud_container()
     for drive_story in drive_stories_to_add:
-        drive_story_url = Drive.get_file_sharable_link(drive_story['id'])
+        drive_story_url = Drive.get_video_sharable_link(drive_story['id'])
         add_to_container_recognizer(drive_story_url)
 
 
-def location_logic(location: str, username: str,
+def location_logic(location: str,
                    day: int = date_now.day, month: int = date_now.month, year: int = date_now.year,
                    end_day: int = 0, end_month: int = 0, end_year: int = 0) -> list:
     """
@@ -101,10 +122,9 @@ def location_logic(location: str, username: str,
     stories_recognition_results = list_container_files_and_results()
     recognized_stories = [story for story in stories_recognition_results if story['results']]
 
-    drive = Drive(username)
-    drive_files = drive.get_files(location,
-                                  start_year=year, start_month=month, start_day=day,
-                                  end_year=end_year, end_month=end_month, end_day=end_day)
+    drive_files = drive.get_videos_at_date_range_from_dir(dir_name=location, parent_dir_id=drive.SPOT_LOCATIONS_DIR_ID,
+                                                          start_year=year, start_month=month, start_day=day,
+                                                          end_year=end_year, end_month=end_month, end_day=end_day)
     found_results = []
     for file in recognized_stories:
         if file['name'] in [drive_file['name'] for drive_file in drive_files]:
@@ -112,7 +132,7 @@ def location_logic(location: str, username: str,
             download_url = drive.get_download_link(drive_id)
             file['download_url'] = download_url
             file_drive_id = drive.get_id_from_sharable_link(file['drive_url'])
-            file['drive_url'] = drive.get_file_link(file_drive_id)
+            file['drive_url'] = drive.get_video_link(file_drive_id)
             found_results.append(file)
 
     logger.success("Finished searching stories in location")

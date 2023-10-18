@@ -226,9 +226,9 @@ class Drive:
             raise DriveFolderNotFound(dir_name=dir_name)
         else:
             drive_dir = []
-            for dir in files:
-                drive_dir.append(dir['id'])
-                logger.debug(f'Found directory with the name: {dir["name"]} and the ID: {dir["id"]}')
+            for directory in files:
+                drive_dir.append(directory['id'])
+                logger.debug(f'Found directory with the name: {directory["name"]} and the ID: {directory["id"]}')
             if len(drive_dir) > 1:
                 raise DriveMultipleDirs(dirs=files, partial_name=dir_name)
             return drive_dir[0]
@@ -283,7 +283,7 @@ class Drive:
         return videos
 
     def get_story_story_locations_dir_id(self):
-        """Get story story locations Google Drive directory ID."""
+        """Get story-story locations Google Drive directory ID."""
 
         dir_name = "STORY_STORY_LOCATIONS"
         locations_dir_query = self.build_get_dir_query(dir_name=dir_name)
@@ -486,7 +486,7 @@ class Drive:
                 logger.success(f'Successfully uploaded {story_file_name} to Drive with ID: {uploaded_file_id}')
 
     def create_drive_dir(self, dir_name, parent_dir_id):
-        """Creating a directory in google drive by parent_dir_id"""
+        """Creating a directory in Google Drive by parent_dir_id"""
 
         dir_metadata = {
             'name': dir_name,

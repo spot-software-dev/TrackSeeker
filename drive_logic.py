@@ -128,6 +128,17 @@ class DriveMainStoriesDirError(DriveError):
         return self.message
 
 
+class DriveDeleteError(DriveError):
+    """Raised when could not delete file."""
+
+    def __init__(self, e, file_id):
+        self.message = f"Unable to delete file ID {file_id}. Error message: {e}"
+        logger.error(self.message)
+
+    def __str__(self):
+        return self.message
+
+
 def clear_downloaded_stories_dir() -> None:
     """Removes all files in the downloaded stories dir."""
     for file in os.listdir(DOWNLOADED_STORIES_DIR):
@@ -504,6 +515,15 @@ class Drive:
         new_dir_id = drive_dir.get('id')
         if new_dir_id:
             logger.success(f'Successfully created directory {dir_name} to parent directory id {parent_dir_id}...')
+
+    def delete_file(self, file_id: str):
+        logger.info(f'Trying to delete file ID: {file_id}...')
+        try:
+            self.service.files().delete(fileId=file_id).execute()
+        except HttpError as e:
+            return {"status": "Fail", "error_message": e}
+        else:
+            logger.success(f'Successfully deleted file ID: {file_id}')
 
     @staticmethod
     def get_video_link(file_id: str) -> str:

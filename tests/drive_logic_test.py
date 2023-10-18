@@ -65,6 +65,20 @@ def delete_test_setup(drive):
     return fixture_data
 
 
+@pytest.fixture
+def delete_duplicates_setup(delete_test_setup):
+    for number_of_uploads in range(2):
+        delete_test_setup['drive_obj'].upload_story_for_sync(
+            dir_id=LOCATION_DIR_ID_SPOT,
+            story_metadata=delete_test_setup['test_story'],
+            username=delete_test_setup['test_story']['username'],
+            location=delete_test_setup['test_story']['location']
+        )
+    time.sleep(5)  # Wait so that Google Drive will not show the deleted videos once we search today's videos
+
+    return delete_test_setup
+
+
 # Build query
 # Dir query
 
@@ -280,3 +294,17 @@ def test_delete_file(drive, delete_test_setup):
     stories_names_after_deletion = [story['name'] for story in stories_after_deletion]
     assert delete_test_setup['file_name'] not in stories_names_after_deletion
     assert len(stories) - len(stories_after_deletion) == 1
+
+
+def test_delete_duplicate_videos_from_dir(drive, delete_duplicates_setup):
+    today_stories = drive.get_all_videos_from_dir(LOCATION_DIR_ID_SPOT)
+    deletion_number = drive.delete_duplicate_videos_from_dir(LOCATION_DIR_ID_SPOT)
+    time.sleep(5)  # Wait so that Google Drive will not show the deleted videos once we search today's videos again
+
+    stories_after_deletion = drive.get_all_videos_from_dir(LOCATION_DIR_ID_SPOT)
+    assert len(today_stories) - len(stories_after_deletion) == deletion_number  # number of deletions
+
+    stories_names_after_deletion = [story['name'] for story in stories_after_deletion]
+    assert set(stories_names_after_deletion) == set(stories_names_after_deletion)  # sets has no duplicates
+
+    assert stories_names_after_deletion.count(delete_duplicates_setup['file_name']) == 1

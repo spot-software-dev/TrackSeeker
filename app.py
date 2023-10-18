@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, request, render_template
-from flask_cors import CORS, cross_origin
+from flask_cors import CORS
 from flask_mail import Mail, Message
 from config import Config
 from logic import location_logic
@@ -21,20 +21,6 @@ def get_data():
     # Your main function logic goes here
     data = [{'message': 'Hello from Python backend!'}]
     return jsonify(data)
-
-
-@app.route('/api/songs', methods=['GET'])
-@cross_origin()
-def get_songs():
-    username = request.args.get("username")
-    if not username:
-        return jsonify(error="Missing 'username' parameter."), 400
-
-    try:
-        data = logic(username)
-        return jsonify(data)
-    except Exception as e:
-        return jsonify(error=str(e)), 500
 
 
 @app.route('/api/database_songs', methods=['GET'])

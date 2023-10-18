@@ -197,20 +197,20 @@ class Drive:
         """
         Construct a Google Drive query for videos.
 
-        Available key-word arguments: dir_id, date, date_end, location
+        Available key-word arguments: dir_id, date, end_date, location
         """
         query = f"mimeType contains 'video/'"
 
         dir_id = kwargs.get('dir_id')
         date = kwargs.get('date')
-        date_end = kwargs.get('date_end')
+        end_date = kwargs.get('end_date')
         location = kwargs.get('location')
 
         if dir_id:
             query += f" and '{dir_id}' in parents"
-        if date and date_end:
-            query += f" and createdTime >= '{date}T00:00:00' and createdTime <= '{date_end}T23:59:59'"
-        if date and not date_end:
+        if date and end_date:
+            query += f" and createdTime >= '{date}T00:00:00' and createdTime <= '{end_date}T23:59:59'"
+        if date and not end_date:
             query += f" and createdTime >= '{date}T00:00:00' and createdTime <= '{date}T23:59:59'"
         if location:
             query += f" and fullText contains '\"{location}\"'"

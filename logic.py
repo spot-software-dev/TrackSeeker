@@ -66,6 +66,7 @@ def sync_user_stories():
                     drive.upload_story_for_sync(dir_id=location_dir_id, story_metadata=story_metadata, username=user_name, location=location_name)
 
     logger.info('Done syncing all stories uploaded today by users who tagged at least once a location SPOT follows')
+    time.sleep(5)  # To avoid OS Errors (files are still being used)
     logger.info('Clearing stories directory...')
     instagram_bot.clean_stories_directory()
 

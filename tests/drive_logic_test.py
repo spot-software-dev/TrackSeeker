@@ -103,6 +103,11 @@ def test_get_dirs_in_parent_dir(drive):
         assert directory['name'] == 'STORY_STORY_LOCATIONS' or directory['name'] == 'STORY_STORY_USERS'
 
 
+def test_get_all_spot_videos(drive):
+    all_spot_videos = drive.get_all_spot_videos()
+    assert list(all_spot_videos[0].keys()) == ['id', 'name', 'created_time']
+
+
 # Videos dates
 
 def test_get_videos_at_date_in_dir(drive):

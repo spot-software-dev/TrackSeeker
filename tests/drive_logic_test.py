@@ -48,7 +48,7 @@ def test_build_get_videos_from_dir_query_with_parent_dir():
 
 def test_build_get_videos_from_dir_query_with_date_range():
     videos_query = Drive.build_get_videos_from_dir_query(
-        date=DATE, date_end=TODAY_DATE)
+        date=DATE, end_date=TODAY_DATE)
     assert f"mimeType contains 'video/' and createdTime >= '{DATE}T00:00:00' and createdTime <= '{TODAY_DATE}T23:59:59'" == videos_query
 
 
@@ -64,7 +64,7 @@ def test_build_get_videos_from_dir_query_with_location():
 
 def test_build_get_videos_from_dir_query_with_all_parameters():
     videos_query = Drive.build_get_videos_from_dir_query(
-        dir_id=STORY_STORY_LOCATIONS_DIR_ID, date=DATE, date_end=TODAY_DATE, location=LOCATION)
+        dir_id=STORY_STORY_LOCATIONS_DIR_ID, date=DATE, end_date=TODAY_DATE, location=LOCATION)
     expected_query = f"mimeType contains 'video/' and '{STORY_STORY_LOCATIONS_DIR_ID}' in parents and createdTime >= '{DATE}T00:00:00' and createdTime <= '{TODAY_DATE}T23:59:59' and fullText contains '\"{LOCATION}\"'"
     assert expected_query == videos_query
 

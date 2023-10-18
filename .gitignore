@@ -29,6 +29,7 @@ logs
 token.json
 service-account-key.json
 DownloadedStories
+instagram_bot_media
 containers.json
 public-endpoint.json
 tests/test_instagram_bot_media/

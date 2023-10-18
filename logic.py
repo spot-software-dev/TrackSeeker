@@ -2,8 +2,7 @@ import datetime
 import os.path
 
 from loguru import logger  # TODO: Add logging to logger and its tests
-from instagram_bot import IGBOT, STORIES_DIR_PATH
-from music_recognition import recognize, MusicRecognitionError
+from instagram_bot import IGBOT
 from music_recognition import list_container_files_and_results, add_to_container_recognizer
 from drive_logic import Drive
 import time
@@ -66,6 +65,7 @@ def sync_user_stories():
                     instagram_bot.download_story(story_metadata=story_metadata, username=user_name, location=location_name)
                     drive.upload_story_for_sync(dir_id=location_dir_id, story_metadata=story_metadata, username=user_name, location=location_name)
 
+    logger.info('Done syncing all stories uploaded today by users who tagged at least once a location SPOT follows')
     logger.info('Clearing stories directory...')
     instagram_bot.clean_stories_directory()
 
@@ -118,7 +118,6 @@ def location_logic(location: str,
     Get stories tagged with a certain location on a certain date with a track present in the database.
     (Can be used with consecutive dates - fill end date parameters for the consecutive dates functionality)
     :param location: Location name of tagged location stories
-    :param username: Client Username to search corresponding Google Drive Dashboard and ACRCloud Container
     :param day: Day of the date to search stories on (also the starting day of consecutive days)
     :param month: Month of the date to search stories on (also the starting month of consecutive days)
     :param year: Year of the date to search stories on (also the starting year of consecutive days)

@@ -111,6 +111,14 @@ def sync_stories_to_recognize():
         add_to_container_recognizer(drive_story_url)
 
 
+def master_sync():
+    """Sync users stories to Google Drive and add their Google Drive links to ACRCloud recognize"""
+    logger.info("Starting Master Sync...")
+    sync_user_stories()
+    sync_stories_to_recognize()
+    logger.success("Done Master Sync")
+
+
 def location_logic(location: str,
                    day: int = date_now.day, month: int = date_now.month, year: int = date_now.year,
                    end_day: int = 0, end_month: int = 0, end_year: int = 0) -> list:

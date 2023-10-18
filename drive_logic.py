@@ -455,6 +455,9 @@ class Drive:
 
         except HttpError as e:
             raise DriveUploadError(f'Error uploading {story_file_name}: {str(e)}')
+        except (SSLWantWriteError, TimeoutError) as e:
+            logger.warning(f'Received SSL error for the second time. Skipping file. Error message: {e}')
+            return
         else:
             uploaded_file_id = response.get('id')
             if uploaded_file_id:

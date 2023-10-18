@@ -517,13 +517,29 @@ class Drive:
             logger.success(f'Successfully created directory {dir_name} to parent directory id {parent_dir_id}...')
 
     def delete_file(self, file_id: str):
+        """Deleting file from Drive"""
+
         logger.info(f'Trying to delete file ID: {file_id}...')
         try:
             self.service.files().delete(fileId=file_id).execute()
         except HttpError as e:
-            return {"status": "Fail", "error_message": e}
-        else:
-            logger.success(f'Successfully deleted file ID: {file_id}')
+            raise DriveDeleteError(e, file_id)
+
+        logger.success(f'Successfully deleted file ID: {file_id}')
+
+    def delete_duplicate_videos_from_dir(self, dir_id: str):
+        """Delete duplicate files (by name) in specified Drive directory."""
+        dir_videos = self.get_all_videos_from_dir(dir_id)
+        deletion_number = 0
+        checked_videos_names = []
+        for video in dir_videos:
+            if video['name'] in checked_videos_names:
+                self.delete_file(video['id'])
+                deletion_number += 1
+            else:
+                checked_videos_names.append(video['name'])
+
+        return deletion_number
 
     @staticmethod
     def get_video_link(file_id: str) -> str:

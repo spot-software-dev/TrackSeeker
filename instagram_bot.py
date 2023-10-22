@@ -95,7 +95,7 @@ class IGBOT:
             raise IGGetError(response.text)
         return response.json()['user']
 
-    def download_story(self, story_metadata: dict, username: str, location: str) -> dict:
+    def download_story(self, story_metadata: dict, username: str, location: str, **kwargs) -> dict:
         """Download story to a temp folder and add name and download path to story metadata for Drive upload"""
         download_url = story_metadata['download_url']
         story_id = story_metadata['id']
@@ -118,6 +118,12 @@ class IGBOT:
             story_metadata['name'] = story_name
             return story_metadata
 
+        except (TimeoutError, requests.exceptions.ReadTimeout) as e:
+            retry_number = kwargs.get('retry', 0) + 1
+            if retry_number == 3:
+                raise IGDownloadError(e)
+            logger.warning(f'During Instagram download received Timeout error. Retry number {retry_number}...')
+            return self.download_story(story_metadata, username, location, retry=retry_number)
         except Exception as e:
             raise IGDownloadError(e)
 

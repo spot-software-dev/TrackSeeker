@@ -486,6 +486,7 @@ class Drive:
         except SSLEOFError as e:
             logger.warning(f'Received SSLEOFError: {e}')
             self._upload_story_for_sync_in_chunks(dir_id, story_metadata, username, location)
+            return
         except TimeoutError as e:
             logger.warning(f'Received SSL error Timeout: {e}')
             self._upload_story_for_sync_in_chunks(dir_id, story_metadata, username, location)

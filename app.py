@@ -64,15 +64,29 @@ def delete_song():
 
 @app.route('/api/location_songs', methods=['POST'])
 def get_location_songs():
+    """
+    Expose searching recognized location songs.
+
+    data expected in JSON:
+        location (str): Name of location
+        date (str): Date of uploaded story to Spot-Stories Google Drive Database
+            to start searching. Format: "DD-MM-YYYY"
+        end_date (str) - optional: Date of uploaded story to Spot-Stories Google Drive Database
+            to finish searching. Defaults to date JSON parameter. Format: "DD-MM-YYYY".
+    """
+
     data = request.get_json()  # Retrieve data from the request body
     location = data.get('location')
     start_day, start_month, start_year = data.get('date').split('-')
+    end_day, end_month, end_year = data.get('end_date', f"{start_day}-{start_month}-{start_year}").split('-')
 
     if not all([start_day, start_month, start_year]):
         return jsonify(error="Missing a date parameter ('start_day'/'start_month'/'start_year')."), 400
 
     try:
-        recognized_songs_links = location_logic(location=location, day=int(start_day), month=int(start_month), year=int(start_year))
+        recognized_songs_links = location_logic(location=location,
+                                                day=int(start_day), month=int(start_month), year=int(start_year),
+                                                end_day=int(end_day), end_month=int(end_month), end_year=int(end_year))
         return jsonify(recognized_songs_links)
     except Exception as e:
         return jsonify(error=str(e)), 500

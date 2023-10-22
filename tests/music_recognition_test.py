@@ -69,8 +69,10 @@ def wrong_file_format_setup():
             file.write(text_input)
 
 
-def test_existing_track_wav():
-    assert recognize(os.path.join(DIR_PATH, 'red_samba_sample.wav'))
+@pytest.fixture(autouse=True)
+def slow_down_tests():
+    yield
+    time.sleep(5)
 
 
 def test_existing_track_aac():

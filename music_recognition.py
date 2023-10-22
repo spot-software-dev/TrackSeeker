@@ -19,6 +19,7 @@ date_now = datetime.date.today()
 logger.add(os.path.join(MAIN_DIR, 'logs', 'music_recognition', f"music_recognition_{date_now}.log"), rotation="1 day")
 
 CONTAINERS_RESULTS_LIMIT = 10000000
+BUCKET_FILES_PER_REQUEST = 80
 
 
 class MusicError(OSError):
@@ -167,7 +168,7 @@ def _upload_to_db(audio_file: BytesIO, title: str, artist: str, album: str = 'Si
         
         answer = response.json()
         if answer.get('error'):
-            raise MusicUploadError(answer['error']['message'])
+            raise MusicUploadError(answer['error'])
     
     except requests.RequestException as e:
         raise MusicUploadError(str(e))
@@ -196,22 +197,34 @@ def upload_to_db_protected(audio_file: BytesIO, title: str, artist: str, album: 
     _upload_to_db(audio_file, title, artist, album)
 
 
-def get_files_in_db() -> dict:
-    url = f"https://api-v2.acrcloud.com/api/buckets/{BUCKET_ID}/files"
+def get_files_in_db() -> list:
 
     headers = {
         'Accept': 'application/json',
         'Authorization': f'Bearer {BUCKET_INTERACTION_TOKEN}'
     }
 
-    logger.info("Getting audio files from database...")
-    response = requests.get(url, headers=headers)
-    logger.info("Finished getting audio files from database")
-    answer = json.loads(response.text)
-    if answer.get('error'):
-        raise MusicUploadError(response.text)
+    page_number = 0
+    results = []
+    while True:
+        url = f"https://api-v2.acrcloud.com/api/buckets/{BUCKET_ID}/files?page={page_number}&per_page={BUCKET_FILES_PER_REQUEST}"
 
-    return answer
+        logger.info("Getting audio files from database...")
+        response = requests.get(url, headers=headers)
+        answer = json.loads(response.text)
+        if answer.get('error'):
+            raise MusicUploadError(response.text)
+
+        results += answer['data']
+
+        if answer['meta']['current_page'] == answer['meta']['last_page']:
+            break
+
+        page_number += 1
+
+        logger.info(f"Finished getting audio files from database. Got {answer['meta']['total']}")
+
+    return results
 
 
 def delete_id_from_db(file_id: int) -> None:
@@ -266,17 +279,17 @@ def delete_id_from_db_protected_for_web(file_id: int) -> None:
         raise MusicFileDoesNotExist(f"{'files_in_db': files_in_db, 'entered_title': title}")
 
 
-def get_musical_metadata(database: dict) -> dict:
+def get_musical_metadata(database: list) -> dict:
     """
     Get the musical metadata of all tracks in database: title, album, artist, ACRCloud database ID
     {song_title: {'id': id, 'artist': artist, 'album': album}, song_title_2: {'id': id, ...}, ...}
     """
     titles_ids = dict()
-    for track_num in range(len(database['data'])):
-        file_title = database['data'][track_num]['title']
-        file_id = database['data'][track_num]['id']
-        file_artist = database['data'][track_num]['user_defined']['artist']
-        file_album = database['data'][track_num]['user_defined']['album']
+    for track_num in range(len(database)):
+        file_title = database[track_num]['title']
+        file_id = database[track_num]['id']
+        file_artist = database[track_num]['user_defined']['artist']
+        file_album = database[track_num]['user_defined']['album']
 
         titles_ids[file_title] = {
             'id': file_id,
@@ -287,7 +300,7 @@ def get_musical_metadata(database: dict) -> dict:
     return titles_ids
 
 
-def get_id_from_title(database: dict, title: str) -> int:
+def get_id_from_title(database: list, title: str) -> int:
     db_ids_titles = get_musical_metadata(database)
     return int(db_ids_titles[title]['id'])
 

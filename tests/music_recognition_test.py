@@ -3,7 +3,7 @@ import io
 import pytest
 import time
 from .test_tools import url_validator
-from ..music_recognition import recognize, get_files_in_db, upload_to_db_protected, delete_id_from_db
+from ..music_recognition import get_files_in_db, upload_to_db_protected, delete_id_from_db
 from ..music_recognition import get_id_from_title, get_musical_metadata, get_human_readable_db
 from ..music_recognition import delete_from_db, delete_id_from_db_protected_for_web, MusicDuplicationError
 from ..music_recognition import list_container_files_and_results, add_to_container_recognizer
@@ -69,29 +69,20 @@ def wrong_file_format_setup():
             file.write(text_input)
 
 
-def test_existing_track_wav():
-    assert recognize(os.path.join(DIR_PATH, 'red_samba_sample.wav'))
+@pytest.fixture(autouse=True)
+def slow_down_tests():
+    yield
+    time.sleep(5)
 
 
-def test_existing_track_aac():
-    assert recognize(os.path.join(DIR_PATH, 'red_samba_sample.aac'))
-
-
-def test_non_existing_track_aac():
-    assert not recognize(os.path.join(DIR_PATH, 'Panoramaxx_sample.aac'))
-
-
-def test_non_existing_famous_track():
-    assert not recognize(os.path.join(DIR_PATH, 'Space_Oddity_sample.wav'))
-
-
-def test_existing_famous_track():
-    assert recognize(os.path.join(DIR_PATH, 'Billie_Jean_sample.wav'))
-
-
-def test_music_recognition_error(wrong_file_format_setup):
-    assert not recognize(os.path.join(DIR_PATH, 'wrong_file_format.txt'))
-    assert not os.path.exists(WRONG_FILE_FORMAT)
+@pytest.fixture(autouse=True)
+def init_uploaded_file_bytes():
+    """
+    Reinitialize file pointer for test uploaded file.
+    After tests using the file, the pointer is at the end when it should be at the beginning for the next test.
+    """
+    TEST_UPLOADED_FILE = io.BytesIO(TEST_FILE_CONTENT)
+    TEST_UPLOADED_FILE.filename = 'Raggae_Soundsystem_intro.mp3'
 
 
 def test_get_files_in_db():

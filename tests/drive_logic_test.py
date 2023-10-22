@@ -10,7 +10,7 @@ TEST_TRACK_ID = "1LwTsb1fsXpT9TkWcMAWWboxoF5kqcSzA"
 TEST_TRACK_LINK = f'https://drive.google.com/file/d/{TEST_TRACK_ID}/view?usp=sharing'
 LOCATION = 'Destino Ibiza'
 LOCATION_DIR_ID = "1qdjeWMxkmKr-T1V2HFXPIoHR-OFNzQC_"  # Story-Story Location ID (Destino Ibiza)
-LOCATION_DIR_ID_SPOT = '1VkEfQc91ezbW95rvXSeG1iClyQ_Up2lF' # Spot Location ID (Destino Ibiza)
+LOCATION_DIR_ID_SPOT = '1VkEfQc91ezbW95rvXSeG1iClyQ_Up2lF'  # Spot Location ID (Destino Ibiza)
 LOCATION2 = "Art Club"
 NON_EXISTENT_LOCATION = 'RISHON_LETZION'
 EXISTENT_LOCATION_NAME = LOCATION

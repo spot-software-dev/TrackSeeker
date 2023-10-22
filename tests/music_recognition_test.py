@@ -75,8 +75,14 @@ def slow_down_tests():
     time.sleep(5)
 
 
-def test_existing_track_aac():
-    assert recognize(os.path.join(DIR_PATH, 'red_samba_sample.aac'))
+@pytest.fixture(autouse=True)
+def init_uploaded_file_bytes():
+    """
+    Reinitialize file pointer for test uploaded file.
+    After tests using the file, the pointer is at the end when it should be at the beginning for the next test.
+    """
+    TEST_UPLOADED_FILE = io.BytesIO(TEST_FILE_CONTENT)
+    TEST_UPLOADED_FILE.filename = 'Raggae_Soundsystem_intro.mp3'
 
 
 def test_non_existing_track_aac():

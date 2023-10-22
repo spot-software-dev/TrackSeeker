@@ -95,7 +95,7 @@ def test_music_recognition_error(wrong_file_format_setup):
 
 
 def test_get_files_in_db():
-    assert type(get_files_in_db()) is dict
+    assert type(get_files_in_db()) is list
 
 
 def test_upload_to_db_protected(cleanup):
@@ -107,11 +107,11 @@ def test_upload_to_db_protected(cleanup):
         artist='Jenja & The Band'
     )
     db_end = get_files_in_db()
-    assert len(db_start['data']) < len(db_end['data'])
+    assert len(db_start) < len(db_end)
 
     end_db_titles = []
-    for track_num in range(len(db_end['data'])):
-        end_db_titles.append(db_end['data'][track_num]['title'])
+    for track_num in range(len(db_end)):
+        end_db_titles.append(db_end[track_num]['title'])
     assert added_track_title in end_db_titles
 
 
@@ -133,8 +133,8 @@ def test_upload_to_db_duplicate_error(cleanup):
 
 def test_get_ids_and_titles():
     db = get_files_in_db()
-    db_files_ids = [file['id'] for file in db['data']]
-    db_files_titles = [file['title'] for file in db['data']]
+    db_files_ids = [file['id'] for file in db]
+    db_files_titles = [file['title'] for file in db]
     titles_ids_db = get_musical_metadata(db)
     for file_title, file_id in list(map(lambda metadata: (metadata[0], metadata[1]['id']), titles_ids_db.items())):
         assert file_id in db_files_ids
@@ -164,7 +164,7 @@ def test_delete_from_db(cleanup):
     delete_from_db(added_track_title)
     db_after_delete = get_files_in_db()
     assert db_after_delete != db_before_delete
-    assert added_track_title not in db_after_delete
+    assert added_track_title not in [file['title'] for file in db_after_delete]
 
 
 def test_delete_id_from_db_protected_for_web(cleanup):

@@ -9,7 +9,7 @@ from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from googleapiclient.http import MediaIoBaseDownload, MediaFileUpload
-from ssl import SSLWantWriteError
+from ssl import SSLWantWriteError, SSLEOFError
 
 from instagram_bot import STORIES_DIR_PATH
 
@@ -455,7 +455,7 @@ class Drive:
 
         except HttpError as e:
             raise DriveUploadError(f'Error uploading {story_file_name}: {str(e)}')
-        except (SSLWantWriteError, TimeoutError) as e:
+        except (SSLWantWriteError, TimeoutError, SSLEOFError) as e:
             logger.warning(f'Received SSL error for the second time. Skipping file. Error message: {e}')
             return
         else:
@@ -489,6 +489,9 @@ class Drive:
             logger.warning(f'Received SSLWantWriteError: {e}')
             self._upload_story_for_sync_in_chunks(dir_id, story_metadata, username, location)
             return
+        except SSLEOFError as e:
+            logger.warning(f'Received SSLEOFError: {e}')
+            self._upload_story_for_sync_in_chunks(dir_id, story_metadata, username, location)
         except TimeoutError as e:
             logger.warning(f'Received SSL error Timeout: {e}')
             self._upload_story_for_sync_in_chunks(dir_id, story_metadata, username, location)

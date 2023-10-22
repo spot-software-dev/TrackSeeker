@@ -420,12 +420,6 @@ class Drive:
         location_dirs = self.get_dirs_in_parent_dir(parent_dir_id=self.SPOT_LOCATIONS_DIR_ID)
         return location_dirs
 
-    def get_today_spot_stories_dir_videos(self):
-        """Get from user's Google Drive main stories folder all today's stories"""
-
-        videos = self.get_videos_at_date_from_dir(dir_id=self.SPOT_LOCATIONS_DIR_ID)
-        return videos
-
     def _upload_story_for_sync_in_chunks(self, dir_id: str, story_metadata: dict, username: str, location: str):
 
         story_id = story_metadata['id']

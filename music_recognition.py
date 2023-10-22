@@ -12,7 +12,7 @@ from werkzeug.utils import secure_filename
 
 load_dotenv()
 
-BUCKET_ID = 20149
+BUCKET_ID = os.environ.get('BUCKET_ID', '')
 CONTAINER_ID = os.environ.get('CONTAINER_ID', '')
 MAIN_DIR = os.path.dirname(os.path.abspath(__file__))
 date_now = datetime.date.today()

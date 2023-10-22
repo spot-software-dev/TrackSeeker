@@ -92,7 +92,7 @@ def get_location_songs():
         return jsonify(error=str(e)), 500
 
 
-@app.route('/api/locations', methods=['POST'])
+@app.route('/api/locations', methods=['GET'])
 def get_locations():
     try:
         locations_and_dates = drive.get_locations_and_dates(locations_dir_id=drive.SPOT_LOCATIONS_DIR_ID)

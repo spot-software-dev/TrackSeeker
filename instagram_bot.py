@@ -3,7 +3,6 @@ import os
 import requests
 import time
 import datetime
-import xmltodict
 from dotenv.main import load_dotenv
 load_dotenv()
 
@@ -163,45 +162,6 @@ class IGBOT:
             return user_stories_metadata
         else:
             raise IGMetaDataError(response.text)
-
-    def get_audio_urls_from_post_location_id(self, location_id: int) -> dict:
-        """Get usernames and their audio URL of recent Instagram Posts in entered location"""
-        url = "https://instagram-scraper-2022.p.rapidapi.com/ig/locations/"
-        querystring = {"location_id": location_id}
-        headers = {
-            "X-RapidAPI-Key": os.environ.get("X_RAPID_API_KEY"),
-            "X-RapidAPI-Host": os.environ.get("X_RAPID_API_HOST")
-        }
-
-        self.fix_request_time()
-
-        response = requests.get(url, headers=headers, params=querystring)
-
-        self.last_request_time = time.time()
-
-        if response.ok:
-            sections = response.json(
-            )['native_location_data']['recent']['sections']
-            location_audios = dict()
-            for section in sections:
-                medias = section['layout_content']['medias']
-                for media in [media for media in medias if media['media'].get('video_dash_manifest')]:
-                    xml_data = xmltodict.parse(
-                        media['media']['video_dash_manifest'])
-                    audio_represent_url = xml_data['MPD']['Period']['AdaptationSet'][1]['Representation']['BaseURL']
-                    if type(audio_represent_url) is str:
-                        audio_url = audio_represent_url
-                    else:
-                        audio_url = audio_represent_url['#text']
-                    if not location_audios.get(media['media']['user']['username']):
-                        location_audios[media['media']
-                                        ['user']['username']] = []
-                    location_audios[media['media']['user']
-                                    ['username']].append(audio_url)
-
-            return location_audios
-        else:
-            raise IGGetError(response.text)
 
     # TODO: Add clean_stories_directory method to bot init and change tests accordingly (replaces setup).
     # TODO: Make sure tests that need files in the stories directory get them using pytest.fixture!

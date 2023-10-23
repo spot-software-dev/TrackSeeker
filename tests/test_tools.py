@@ -1,6 +1,7 @@
 import re
 import datetime
 
+
 def url_validator(url: str) -> bool:
     """Validate URL is valid (not broken)."""
     regex = re.compile(

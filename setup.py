@@ -30,7 +30,7 @@ logger.add(os.path.join(MAIN_DIR, 'logs', 'setup',
 
 
 class GoogleAuthKeyEnvValuesError(OSError):
-    """Raised when encountered an error while trying to receive env values for google auth file"""
+    """Raised when encountered an error while trying to receive env values for Google auth file"""
 
     def __init__(self):
         self.message = f"Encountered an error while trying to receive env values"

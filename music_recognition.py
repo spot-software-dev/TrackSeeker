@@ -2,8 +2,6 @@ from loguru import logger
 import requests
 import datetime
 import subprocess
-from moviepy.editor import VideoFileClip
-from acrcloud.recognizer import ACRCloudRecognizer
 from dotenv.main import load_dotenv
 import os
 from io import BytesIO
@@ -91,49 +89,6 @@ CONFIG = {
 }
 # BUCKET_INTERACTION_TOKEN = environ.get('ACRCLOUD_USER_INTERACTION_TOKEN', '')
 BUCKET_INTERACTION_TOKEN = os.environ.get('TEST_ALL_TOKEN', '')
-
-
-def check_if_video_has_audio(video_path):
-    try:
-        video_clip = VideoFileClip(video_path)
-        has_audio = video_clip.audio is not None
-        video_clip.close()
-        return has_audio
-    except Exception as e:
-        logger.error(f"Couldn't find if the video {video_path} has audio. Error message: {e}")
-        raise e
-
-
-def recognize(recording_sample: str, **kwargs) -> bool or dict:
-    """
-    Check if the recorded sample is present in the user database (the sample is cropped to the first 10 seconds)
-    :param recording_sample: Path to local audio file
-    :return: Is the recording in user database or not
-    """
-    logger.info(f"Recognising file in {recording_sample}")
-    acr_recognizer = ACRCloudRecognizer(CONFIG)
-    answer = json.loads(acr_recognizer.recognize_by_file(recording_sample, start_seconds=0))
-    logger.info(f"Done recognising file in {recording_sample}")
-    logger.debug(f"Recognition answer: {answer}")
-    if answer["status"]["msg"] == 'Success':
-        return answer['metadata']['custom_files']
-    elif answer['status']['msg'] == 'No result':
-        return False
-    elif answer['status']['msg'] == 'May Be Mute':
-        logger.debug(f"Can't recognize file, it may be mute, deleting file.")
-        os.remove(recording_sample)
-        return False
-    elif answer['status']['msg'] == 'Decode Audio Error':
-        _retries = kwargs.get('_retries', 0)
-        if _retries == 3:
-            logger.warning("Could not decode the audio, deleting file")
-            os.remove(recording_sample)
-            return False
-        _retries += 1
-        logger.info('Retrying to recognize file...')
-        return recognize(recording_sample, _retries=_retries)
-    else:
-        raise MusicRecognitionError(answer['status'])
 
 
 # noinspection PyUnresolvedReferences

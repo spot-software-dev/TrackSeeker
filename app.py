@@ -84,7 +84,7 @@ def get_location_songs():
         return jsonify(error="Missing a date parameter ('start_day'/'start_month'/'start_year')."), 400
 
     try:
-        recognized_songs_links = location_logic(location=location,
+        recognized_songs_links = location_logic(location=location, drive=drive,
                                                 day=int(start_day), month=int(start_month), year=int(start_year),
                                                 end_day=int(end_day), end_month=int(end_month), end_year=int(end_year))
         return jsonify(recognized_songs_links)

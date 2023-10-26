@@ -75,7 +75,6 @@ def get_location_songs():
         end_date (str) - optional: Date of uploaded story to Spot-Stories Google Drive Database
             to finish searching. Defaults to date JSON parameter. Format: "DD-MM-YYYY".
     """
-
     data = request.get_json()  # Retrieve data from the request body
     location = data.get('location')
     start_day, start_month, start_year = data.get('date').split('-')

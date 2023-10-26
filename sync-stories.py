@@ -1,6 +1,10 @@
 from loguru import logger
 import datetime
+import time
 from drive_logic import Drive
+
+COOLDOWN_MINUTES = 30  # Not too much, not too little.
+
 
 if __name__ == "__main__":
     drive = Drive()
@@ -16,3 +20,4 @@ if __name__ == "__main__":
         else:
             logger.success(f'Completed sync with no errors at {date_now}')
 
+        time.sleep(60 * COOLDOWN_MINUTES)

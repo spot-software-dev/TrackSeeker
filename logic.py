@@ -12,7 +12,6 @@ date_now = datetime.date.today()
 logger.add(os.path.join(MAIN_DIR, 'logs', 'music_recognition', f"music_recognition_{date_now}.log"), rotation="1 day")
 
 instagram_bot = IGBOT()
-drive = Drive()
 
 
 def get_story_user(story_name: str) -> str:
@@ -30,9 +29,11 @@ def get_story_id_from_name(story: dict) -> str:
     return story_id
 
 
-def sync_user_stories():
+def sync_user_stories(drive: Drive) -> None:
     """
     Add each of today's Instagram location story user's stories that hasn't been uploaded yet to user's Drive
+
+    :param drive: Drive object for Spot Google Drive requests
 
     Get a list of users from user's Google Drive Dashboard_locations,
     download by Instagram username all their currently uploaded stories
@@ -84,8 +85,12 @@ def get_acrcloud_ids_from_drive_id(drive_id: str) -> list:
     return acrcloud_ids
 
 
-def get_stories_not_in_acrcloud_container() -> list:
-    """Get all stories in Google Drive that are not yet in ACRCloud container"""
+def get_stories_not_in_acrcloud_container(drive: Drive) -> list:
+    """
+    Get all stories in Google Drive that are not yet in ACRCloud container
+
+    :param drive: Drive object for Spot Google Drive requests
+    """
     drive_files = drive.get_all_spot_videos()
     acrcloud_recognition_results = list_container_files_and_results()
     acrcloud_files_urls = [story_recognition['drive_url'] for story_recognition in acrcloud_recognition_results]
@@ -102,31 +107,38 @@ def get_stories_not_in_acrcloud_container() -> list:
     return stories_to_add
 
 
-def sync_stories_to_recognize():
-    """Upload stories in Google Drive that are not yet in ACRCloud container."""
+def sync_stories_to_recognize(drive: Drive):
+    """
+    Upload stories in Google Drive that are not yet in ACRCloud container.
+
+    :param drive: Drive object for Spot Google Drive requests
+    """
     logger.info(
         "Synchronizing ACRCloud stories with the stories saved in Google Drive")
-    drive_stories_to_add = get_stories_not_in_acrcloud_container()
+    drive_stories_to_add = get_stories_not_in_acrcloud_container(drive)
     for drive_story in drive_stories_to_add:
         drive_story_url = Drive.get_video_sharable_link(drive_story['id'])
         add_to_container_recognizer(drive_story_url)
 
 
-def master_sync():
+def master_sync(drive: Drive):
     """Sync users stories to Google Drive and add their Google Drive links to ACRCloud recognize"""
     logger.info("Starting Master Sync...")
-    sync_user_stories()
-    sync_stories_to_recognize()
+    sync_user_stories(drive)
+    sync_stories_to_recognize(drive)
     logger.success("Done Master Sync")
 
 
-def location_logic(location: str,
+def location_logic(location: str, drive: Drive,
                    day: int = date_now.day, month: int = date_now.month, year: int = date_now.year,
                    end_day: int = 0, end_month: int = 0, end_year: int = 0) -> list:
     """
     Get stories tagged with a certain location on a certain date with a track present in the database.
+
     (Can be used with consecutive dates - fill end date parameters for the consecutive dates functionality)
+
     :param location: Location name of tagged location stories
+    :param drive: Drive object for Spot Google Drive requests
     :param day: Day of the date to search stories on (also the starting day of consecutive days)
     :param month: Month of the date to search stories on (also the starting month of consecutive days)
     :param year: Year of the date to search stories on (also the starting year of consecutive days)

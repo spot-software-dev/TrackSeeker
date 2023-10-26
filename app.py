@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request, render_template
 from flask_cors import CORS
 from flask_mail import Mail, Message
+import datetime
 from config import Config
 from logic import location_logic
 from music_recognition import get_human_readable_db, upload_to_db_protected, delete_id_from_db_protected_for_web
@@ -83,6 +84,7 @@ def get_location_songs():
     if not all([start_day, start_month, start_year]):
         return jsonify(error="Missing a date parameter ('start_day'/'start_month'/'start_year')."), 400
 
+    Drive.date_now = datetime.datetime.today().date()
     try:
         recognized_songs_links = location_logic(location=location, drive=drive,
                                                 day=int(start_day), month=int(start_month), year=int(start_year),
@@ -94,6 +96,7 @@ def get_location_songs():
 
 @app.route('/api/locations', methods=['GET'])
 def get_locations():
+    Drive.date_now = datetime.datetime.today().date()
     try:
         locations_and_dates = drive.get_locations_and_dates(locations_dir_id=drive.SPOT_LOCATIONS_DIR_ID)
     except Exception as e:

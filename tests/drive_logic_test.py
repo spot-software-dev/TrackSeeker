@@ -8,9 +8,9 @@ from ..instagram_bot import IGBOT
 
 TEST_TRACK_ID = "1LwTsb1fsXpT9TkWcMAWWboxoF5kqcSzA"
 TEST_TRACK_LINK = f'https://drive.google.com/file/d/{TEST_TRACK_ID}/view?usp=sharing'
-LOCATION = 'Destino Ibiza'
-LOCATION_DIR_ID = "1qdjeWMxkmKr-T1V2HFXPIoHR-OFNzQC_"  # Story-Story Location ID (Destino Ibiza)
-LOCATION_DIR_ID_SPOT = '1VkEfQc91ezbW95rvXSeG1iClyQ_Up2lF'  # Spot Location ID (Destino Ibiza)
+LOCATION = 'Pacha'
+LOCATION_DIR_ID = "1RcfoD9XLZQL6VMzRf1_6modMl0kkru2w"  # Story-Story Location ID (Pacha)
+LOCATION_DIR_ID_SPOT = '1dJiNqkuO__lZdcRs4xnZOeCrQpQG'  # Spot Location ID (Pacha)
 LOCATION2 = "Art Club"
 NON_EXISTENT_LOCATION = 'RISHON_LETZION'
 EXISTENT_LOCATION_NAME = LOCATION
@@ -135,7 +135,7 @@ def test_get_dir_id(drive):
 
 
 def test_get_files_from_dir(drive):
-    videos_query = drive.build_get_videos_from_dir_query(dir_id=LOCATION_DIR_ID, date=DATE)
+    videos_query = drive.build_get_videos_from_dir_query(dir_id=LOCATION_DIR_ID_SPOT, date=DATE)
     drive_videos = drive.get_files_from_dir(query=videos_query)
 
     assert drive_videos
@@ -167,9 +167,8 @@ def test_get_all_spot_videos(drive):
 # Videos dates
 
 def test_get_videos_at_date_in_dir(drive):
-    locations_dir_id = drive.get_story_story_locations_dir_id()
     drive_location_folder_id = drive.get_dir_id_with_parent(
-        parent_dir_id=locations_dir_id, dir_name=LOCATION)
+        parent_dir_id=drive.SPOT_LOCATIONS_DIR_ID, dir_name=LOCATION)
     drive_videos = drive.get_videos_at_date_from_dir(dir_id=drive_location_folder_id,
                                                      year=DATE.year,
                                                      month=DATE.month,
@@ -220,8 +219,7 @@ def test_non_existent_location(drive):
 # Downloads
 
 def test_get_download_link(drive):
-    locations_dir_id = drive.get_story_story_locations_dir_id()
-    get_location_query = drive.build_get_dir_query(parent_dir_id=locations_dir_id, dir_name=LOCATION)
+    get_location_query = drive.build_get_dir_query(parent_dir_id=drive.SPOT_LOCATIONS_DIR_ID, dir_name=LOCATION)
     drive_location_folder_id = drive.get_dir_id(query=get_location_query, dir_name=NON_EXISTENT_LOCATION)
     drive_videos = drive.get_videos_at_date_from_dir(dir_id=drive_location_folder_id,
                                                      year=TODAY_DATE.year,
@@ -271,8 +269,8 @@ def test_upload_story_for_sync(drive):
     downloaded_story_metadata = igbot.download_story(story_metadata=user_stories_metadata[0],
                                                      username=username,
                                                      location=location)
-    story_name = f"{location}-{TODAY_DATE}-{story_id}-{username}"
-    assert downloaded_story_metadata['name'] == f"{story_name}.mp4"
+    story_name = f"{location}-{TODAY_DATE}-{story_id}-{username}.mp4"
+    assert downloaded_story_metadata['name'] == story_name
     drive.upload_story_for_sync(dir_id=drive.SPOT_LOCATIONS_DIR_ID, story_metadata=user_stories_metadata[0], location=location, username=username)
     time.sleep(15)
     videos_in_spot_dir = drive.get_videos_at_date_from_dir(dir_id=drive.SPOT_LOCATIONS_DIR_ID)

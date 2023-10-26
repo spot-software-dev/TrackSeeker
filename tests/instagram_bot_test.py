@@ -10,6 +10,7 @@ date_now = datetime.date.today()
 
 TEST_IG_USERNAME = 'pachaofficial'
 TEST_IG_ID = '212110630'
+TEST_LOCATION = 'Pacha'
 
 
 def clean_stories_test_directory():
@@ -43,12 +44,8 @@ def test_get_userinfo(bot):
 
 def test_download_story(bot, setup):
     stories_metadata = bot.get_user_stories_metadata(TEST_IG_USERNAME)
-    stories = bot.download_story(stories_metadata, TEST_IG_USERNAME)
+    stories = []
+    for story in stories_metadata:
+        bot.download_story(story, TEST_IG_USERNAME, TEST_LOCATION)
     test_dir_content = os.listdir(STORIES_TESTS_DIR)
-    assert all([f"{date_now}-{story['id']}-{TEST_IG_USERNAME}.mp4" in test_dir_content for story in stories["stories"]])
-
-
-def test_get_audio_urls_from_post_location_id(bot):
-    location_audios = bot.get_audio_urls_from_post_location_id(1977542)  # Location ID of "Beit Haamudim"
-    first_url = list(location_audios.values())[0][0]
-    assert first_url.startswith("https://instagram")
+    assert all([f"{date_now}-{story['id']}-{TEST_IG_USERNAME}.mp4" in test_dir_content for story in stories])

@@ -251,7 +251,7 @@ class Drive:
             files = []
             while True:
                 results = self.service.files().list(q=query, fields="nextPageToken, files(id, name, createdTime)",
-                                                    pageToken=page_token).execute()
+                                                    pageToken=page_token, pageSize=1000).execute()
                 items = results.get('files', [])
 
                 if not items:

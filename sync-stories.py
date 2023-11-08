@@ -2,6 +2,7 @@ from loguru import logger
 import datetime
 import time
 from drive_logic import Drive
+from instagram_bot import IGBOT
 
 COOLDOWN_MINUTES = 30  # Not too much, not too little.
 

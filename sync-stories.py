@@ -1,4 +1,5 @@
 from loguru import logger
+import traceback
 import datetime
 import time
 from drive_logic import Drive
@@ -19,7 +20,7 @@ if __name__ == "__main__":
             from logic import master_sync
             master_sync(drive, instagram_bot)
         except Exception as e:
-            logger.error(f'Error occurred: {e}')
+            logger.error(f'Error occurred: {e}. Traceback: {traceback.format_exc()}')
         else:
             logger.success(f'Completed sync with no errors at {date_now}')
 

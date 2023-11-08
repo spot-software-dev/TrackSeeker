@@ -70,9 +70,6 @@ def sync_user_stories(drive: Drive) -> None:
                         logger.warning(f"Encountered an error downloading file {story_metadata['id']}. Skipping file...")
 
     logger.success('Done syncing all stories uploaded today by users who tagged at least once a location SPOT follows')
-    time.sleep(30)  # To avoid OS Errors (files are still being used)
-    logger.info('Clearing stories directory...')
-    instagram_bot.clean_stories_directory()
 
 
 def get_acrcloud_ids_from_drive_id(drive_id: str) -> list:

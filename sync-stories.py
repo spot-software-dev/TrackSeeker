@@ -9,13 +9,15 @@ COOLDOWN_MINUTES = 30  # Not too much, not too little.
 
 if __name__ == "__main__":
     drive = Drive()
+    instagram_bot = IGBOT()
     while True:
         date_now = datetime.datetime.today().date()
-        Drive.date_now = date_now
+        drive.date_now = date_now
+        instagram_bot.date_now = date_now
         logger.info(f'Synchronizing at {date_now}')
         try:
             from logic import master_sync
-            master_sync(drive)
+            master_sync(drive, instagram_bot)
         except Exception as e:
             logger.error(f'Error occurred: {e}')
         else:

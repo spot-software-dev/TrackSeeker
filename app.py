@@ -83,7 +83,7 @@ def get_location_songs():
     if not all([start_day, start_month, start_year]):
         return jsonify(error="Missing a date parameter ('start_day'/'start_month'/'start_year')."), 400
 
-    Drive.date_now = datetime.datetime.today().date()
+    drive.date_now = datetime.datetime.today().date()
     try:
         recognized_songs_links = location_logic(location=location, drive=drive,
                                                 day=int(start_day), month=int(start_month), year=int(start_year),
@@ -95,7 +95,7 @@ def get_location_songs():
 
 @app.route('/api/locations', methods=['GET'])
 def get_locations():
-    Drive.date_now = datetime.datetime.today().date()
+    drive.date_now = datetime.datetime.today().date()
     try:
         locations_and_dates = drive.get_locations_and_dates(locations_dir_id=drive.SPOT_LOCATIONS_DIR_ID)
     except Exception as e:

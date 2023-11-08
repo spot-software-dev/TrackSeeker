@@ -1,7 +1,9 @@
+from loguru import logger
 from flask import Flask, jsonify, request, render_template
 from flask_cors import CORS
 from flask_mail import Mail, Message
 import datetime
+import traceback
 from config import Config
 from logic import location_logic
 from music_recognition import get_human_readable_db, upload_to_db_protected, delete_id_from_db_protected_for_web
@@ -44,6 +46,7 @@ def upload_song():
         upload_to_db_protected(audio_file=audio_file, title=title, artist=artist, album=album)
         return jsonify(message="Song uploaded successfully.")
     except Exception as e:
+        logger.error(f"Server error uploading song. Traceback:\n{traceback.format_exc()}")
         return jsonify(error=str(e)), 500
 
 
@@ -60,6 +63,7 @@ def delete_song():
         delete_id_from_db_protected_for_web(file_id)
         return jsonify(message="Song deleted successfully.")
     except Exception as e:
+        logger.error(f"Server error deleting song. Traceback:\n{traceback.format_exc()}")
         return jsonify(error=str(e)), 500
 
 
@@ -90,6 +94,7 @@ def get_location_songs():
                                                 end_day=int(end_day), end_month=int(end_month), end_year=int(end_year))
         return jsonify(recognized_songs_links)
     except Exception as e:
+        logger.error(f"Server error searching recognized location songs. Traceback:\n{traceback.format_exc()}")
         return jsonify(error=str(e)), 500
 
 
@@ -99,6 +104,7 @@ def get_locations():
     try:
         locations_and_dates = drive.get_locations_and_dates(locations_dir_id=drive.SPOT_LOCATIONS_DIR_ID)
     except Exception as e:
+        logger.error(f"Server error getting locations and dates. Traceback:\n{traceback.format_exc()}")
         return jsonify(error=str(e)), 500
     return jsonify(locations_and_dates)
 
@@ -120,6 +126,7 @@ def send_email():
         mail.send(msg)
         return jsonify(message="Email was sent successfully!")
     except Exception as e:
+        logger.error(f"Server error sending mail. Traceback:\n{traceback.format_exc()}")
         return jsonify(error=str(e)), 500
 
 

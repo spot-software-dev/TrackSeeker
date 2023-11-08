@@ -112,7 +112,7 @@ class DriveShareableLinkError(DriveError):
     """Raised when could not retrieve the Drive file's shareable link."""
 
     def __init__(self):
-        self.message = "Error: Unable to retrieve the shareable link.."
+        self.message = "Error: Unable to retrieve the shareable link."
 
     def __str__(self):
         return self.message

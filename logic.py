@@ -2,7 +2,7 @@ import datetime
 import os.path
 
 from loguru import logger  # TODO: Add logging to logger and its tests
-from instagram_bot import IGBOT
+from instagram_bot import IGBOT, IGDownloadError
 from music_recognition import list_container_files_and_results, add_to_container_recognizer
 from drive_logic import Drive
 import time
@@ -63,8 +63,11 @@ def sync_user_stories(drive: Drive) -> None:
                     logger.debug(f"Story already exists in Drive, Story ID: {story_metadata['id']}")
                     location_dir_stories_id.remove(story_metadata['id'])
                 else:
-                    instagram_bot.download_story(story_metadata=story_metadata, username=user_name, location=location_name)
-                    drive.upload_story_for_sync(dir_id=location_dir_id, story_metadata=story_metadata, username=user_name, location=location_name)
+                    try:
+                        instagram_bot.download_story(story_metadata=story_metadata, username=user_name, location=location_name)
+                        drive.upload_story_for_sync(dir_id=location_dir_id, story_metadata=story_metadata, username=user_name, location=location_name)
+                    except IGDownloadError:
+                        logger.warning(f"Encountered an error downloading file {story_metadata['id']}. Skipping file...")
 
     logger.success('Done syncing all stories uploaded today by users who tagged at least once a location SPOT follows')
     time.sleep(30)  # To avoid OS Errors (files are still being used)

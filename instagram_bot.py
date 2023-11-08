@@ -118,7 +118,7 @@ class IGBOT:
             story_metadata['name'] = story_name
             return story_metadata
 
-        except (TimeoutError, requests.exceptions.ReadTimeout) as e:
+        except (TimeoutError, requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError) as e:
             retry_number = kwargs.get('retry', 0) + 1
             if retry_number == 3:
                 raise IGDownloadError(e)

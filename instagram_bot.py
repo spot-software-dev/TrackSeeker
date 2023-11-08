@@ -13,9 +13,9 @@ STORIES_DIR_PATH = os.environ.get('STORIES_DIR_PATH', FILE_DIR_PATH)
 if not os.path.exists(STORIES_DIR_PATH):
     os.makedirs(STORIES_DIR_PATH)
 
-date_now = datetime.date.today()
+DATE_NOW = datetime.date.today()
 logger.add(os.path.join(MAIN_DIR, 'logs', "instagram_bot",
-           f"instagram_bot_{date_now}.log"), rotation="1 day")
+           f"instagram_bot_{DATE_NOW}.log"), rotation="1 day")
 
 
 class IGError(OSError):
@@ -41,6 +41,7 @@ class IGMetaDataError(IGGetError):
 class IGBOT:
     def __init__(self):
         self.last_request_time = time.time()
+        self.date_now = DATE_NOW
 
     def fix_request_time(self):
         wiggle_room_sec = 0.5 
@@ -98,7 +99,7 @@ class IGBOT:
         """Download story to a temp folder and add name and download path to story metadata for Drive upload"""
         download_url = story_metadata['download_url']
         story_id = story_metadata['id']
-        story_name = f"{location}-{date_now}-{story_id}-{username}.mp4"
+        story_name = f"{location}-{self.date_now}-{story_id}-{username}.mp4"
         file_path = os.path.join(STORIES_DIR_PATH, story_name)
 
         self.fix_request_time()

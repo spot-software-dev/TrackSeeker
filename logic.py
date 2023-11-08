@@ -11,8 +11,6 @@ MAIN_DIR = os.path.dirname(os.path.abspath(__file__))
 date_now = datetime.date.today()
 logger.add(os.path.join(MAIN_DIR, 'logs', 'music_recognition', f"music_recognition_{date_now}.log"), rotation="1 day")
 
-instagram_bot = IGBOT()
-
 
 def get_story_user(story_name: str) -> str:
     """Get the username of the user that uploaded the story"""
@@ -29,11 +27,12 @@ def get_story_id_from_name(story: dict) -> str:
     return story_id
 
 
-def sync_user_stories(drive: Drive) -> None:
+def sync_user_stories(drive: Drive, instagram_bot: IGBOT) -> None:
     """
     Add each of today's Instagram location story user's stories that hasn't been uploaded yet to user's Drive
 
     :param drive: Drive object for Spot Google Drive requests
+    :param instagram_bot: Instagram Bot object for Instagram user-stories searching and downloading
 
     Get a list of users from user's Google Drive Dashboard_locations,
     download by Instagram username all their currently uploaded stories
@@ -121,10 +120,10 @@ def sync_stories_to_recognize(drive: Drive):
         add_to_container_recognizer(drive_story_url)
 
 
-def master_sync(drive: Drive):
+def master_sync(drive: Drive, instagram_bot: IGBOT):
     """Sync users stories to Google Drive and add their Google Drive links to ACRCloud recognize"""
     logger.info("Starting Master Sync...")
-    sync_user_stories(drive)
+    sync_user_stories(drive, instagram_bot)
     sync_stories_to_recognize(drive)
     logger.success("Done Master Sync")
 

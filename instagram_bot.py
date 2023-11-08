@@ -172,4 +172,8 @@ class IGBOT:
         Delete all files in stories directory
         """
         for file in os.listdir(STORIES_DIR_PATH):
-            os.remove(os.path.join(STORIES_DIR_PATH, file))
+            file_path = os.path.join(STORIES_DIR_PATH, file)
+            try:
+                os.remove(file_path)
+            except PermissionError:
+                logger.warning(f'Tried deleting story from media cache. Still processing file {file}. Skipping file.')

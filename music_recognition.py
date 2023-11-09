@@ -342,7 +342,7 @@ def list_container_files_and_results() -> list:
             }
             recognition_data['results'] = relevant_metadata
         else:
-            recognition_data['results'] = None
+            recognition_data['results'] = dict()
 
         results.append(recognition_data)
 

@@ -3,11 +3,9 @@ import os
 import requests
 import time
 import datetime
-from dotenv.main import load_dotenv
-load_dotenv()
+from setup import MAIN_DIR
 
 RAPID_API_TIME_LIMIT = 1
-MAIN_DIR = os.path.dirname(os.path.abspath(__file__))
 FILE_DIR_PATH = os.path.join(MAIN_DIR, 'instagram_bot_media')
 STORIES_DIR_PATH = os.environ.get('STORIES_DIR_PATH', FILE_DIR_PATH)
 if not os.path.exists(STORIES_DIR_PATH):

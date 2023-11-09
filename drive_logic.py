@@ -12,7 +12,7 @@ from googleapiclient.http import MediaIoBaseDownload, MediaFileUpload
 from ssl import SSLWantWriteError, SSLEOFError
 
 from instagram_bot import STORIES_DIR_PATH
-
+from setup import MAIN_DIR
 DOWNLOADED_STORIES_DIR = os.path.join(
     os.path.abspath(os.curdir), 'DownloadedStories')
 os.makedirs(DOWNLOADED_STORIES_DIR, exist_ok=True)
@@ -23,8 +23,6 @@ SCOPES = ['https://www.googleapis.com/auth/drive.metadata.readonly',
 
 API_NAME = 'drive'
 API_VERSION = 'v3'
-
-MAIN_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 class DriveError(HttpError):

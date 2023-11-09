@@ -2,8 +2,6 @@ import pytest
 import os
 import datetime
 from tests import STORIES_TESTS_DIR
-STORIES_TESTS_DIR = os.path.join(TESTS_DIR, 'test_instagram_bot_media')
-os.environ['STORIES_DIR_PATH'] = STORIES_TESTS_DIR
 
 date_now = datetime.date.today()
 

@@ -4,7 +4,6 @@ import time
 import datetime
 from .test_tools import url_validator, date_validator
 from ..drive_logic import Drive, DriveFolderNotFound, STORIES_DIR_PATH
-from ..instagram_bot import IGBOT
 
 TEST_TRACK_ID = "1LwTsb1fsXpT9TkWcMAWWboxoF5kqcSzA"
 TEST_TRACK_LINK = f'https://drive.google.com/file/d/{TEST_TRACK_ID}/view?usp=sharing'
@@ -18,11 +17,6 @@ STORY_STORY_LOCATIONS_DIR_ID = "178oc91hM5JbzdLQtyUvOdblmdq9pr2oG"
 DATE = datetime.datetime(2023, 10, 13).date()
 DATE2 = datetime.datetime(2023, 10, 1).date()
 TODAY_DATE = datetime.datetime.today().date()
-
-
-@pytest.fixture
-def drive():
-    return Drive()
 
 
 @pytest.fixture
@@ -257,13 +251,12 @@ def test_get_id_from_sharable_link(drive):
 
 # Upload video
 
-def test_upload_story_for_sync(drive):
+def test_upload_story_for_sync(drive, igbot):
     today_locations_usernames = drive.get_today_locations_stories_usernames(locations_dir_id=drive.STORY_STORY_LOCATIONS_DIR_ID)
     if not today_locations_usernames:
         pytest.skip("Locations followed do not have any location stories. Skipping test.")
     location = today_locations_usernames[0]['location']
     username = today_locations_usernames[0]['usernames'][0]
-    igbot = IGBOT()
     user_stories_metadata = igbot.get_user_stories_metadata(username=username)
     story_id = user_stories_metadata[0]['id']
     downloaded_story_metadata = igbot.download_story(story_metadata=user_stories_metadata[0],

@@ -73,6 +73,19 @@ def delete_duplicates_setup(delete_test_setup):
     return delete_test_setup
 
 
+@pytest.fixture
+def sorted_today_spot_stories(drive):
+    spot_today_stories = drive.get_today_locations_stories_usernames(drive.SPOT_LOCATIONS_DIR_ID)
+    spot_today_stories.sort(key=lambda location: location['location'])
+    return spot_today_stories
+
+
+@pytest.fixture
+def sorted_today_storystory_stories(drive, igbot):
+    storystory_today_stories = drive.get_today_locations_stories_usernames(drive.STORY_STORY_LOCATIONS_DIR_ID)
+    storystory_today_stories.sort(key=lambda location: location['location'])
+    return storystory_today_stories
+
 # Build query
 # Dir query
 
@@ -200,6 +213,18 @@ def test_get_locations_and_dates(drive):
 def test_get_today_locations_stories_usernames(drive):
     usernames_to_download_by_location = drive.get_today_locations_stories_usernames(locations_dir_id=STORY_STORY_LOCATIONS_DIR_ID)
     assert EXISTENT_LOCATION_NAME in [usernames_locations['location'] for usernames_locations in usernames_to_download_by_location]
+
+
+def test_spot_dir_and_storystory_dir(caplog, drive, igbot, sorted_today_spot_stories, sorted_today_storystory_stories):
+    for location_usernames in [story['usernames'] for story in sorted_today_storystory_stories]:
+        for username in location_usernames:
+            _ = igbot.get_user_stories_metadata(username=username)  # Logs if user uploaded a story with no audio
+
+    if "Story has no audio" in caplog.text:
+        pytest.skip("Some story-story stories in Google Drive have no audio and will not be added to Spot Stories. Test unavailable, please wait for the next day.")
+    for today_stories in zip(sorted_today_spot_stories, sorted_today_storystory_stories):
+        assert len(today_stories[0]['usernames']) >= len(today_stories[1]['usernames'])
+        assert all([username in today_stories[0]['usernames'] for username in today_stories[1]['usernames']])
 
 
 # Custom Error test

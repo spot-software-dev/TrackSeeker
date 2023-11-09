@@ -154,6 +154,8 @@ class IGBOT:
                     if story.get('has_audio'):
                         story_url = story['video_versions'][0]['url']
                         user_stories_metadata.append({"id": story['id'], "download_url": story_url})
+                    else:
+                        logger.info(f"Story has no audio. Skipping story ID {story['id']} by {username}")
             else:
                 # TODO: Change the logger message. It is not necessarily true that the user has no stories
                 logger.info(

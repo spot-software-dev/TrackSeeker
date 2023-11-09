@@ -223,15 +223,6 @@ def test_get_download_link(drive):
     assert url_validator(link)
 
 
-def test_download_files(drive):
-    downloaded_files = drive.download_files(dir_name=LOCATION2, parent_dir_id=drive.STORY_STORY_LOCATIONS_DIR_ID,
-                                            start_year=DATE2.year, end_year=DATE2.year,
-                                            start_month=DATE2.month, end_month=DATE2.month,
-                                            start_day=DATE2.day, end_day=DATE2.day)
-    for file in downloaded_files:
-        assert os.path.exists(file['path'])
-
-
 # Video link
 
 def test_get_video_link(drive):

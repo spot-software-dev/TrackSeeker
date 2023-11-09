@@ -68,7 +68,7 @@ class IGBOT:
 
         self.last_request_time = time.time()
 
-        if not response.ok:
+        if not response.ok or 'Something went wrong' in response.text:
             raise IGGetError(response.text)
         return response.json()['id']
 

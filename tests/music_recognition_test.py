@@ -2,6 +2,8 @@ import os
 import io
 import pytest
 import time
+from copy import deepcopy
+from . import MEDIA_TESTS_DIR
 from .test_tools import url_validator
 from ..music_recognition import get_files_in_db, upload_to_db_protected, delete_id_from_db
 from ..music_recognition import get_id_from_title, get_musical_metadata, get_human_readable_db
@@ -10,16 +12,14 @@ from ..music_recognition import list_container_files_and_results, add_to_contain
 from ..music_recognition import delete_from_container_recognizer, rescan_all_files
 from ..logic import get_acrcloud_ids_from_drive_id
 
-DIR_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'media')
-
-TEST_TRACKS_IN_DB = ['intro + sound the system', 'Alawan', 'Red Samba', 'Billie Jean']
+TEST_UPLOAD_TRACK_TITLE = 'intro + sound the system'
+test_upload_track_filename = 'Raggae_Soundsystem_intro.mp3'
+TEST_UPLOAD_TRACK_ARTIST = 'Jenja & The Band'
+TEST_TRACKS_IN_DB = ['Alawan', 'Red Samba', 'Billie Jean']
 TEST_TRACK_ID = "1LwTsb1fsXpT9TkWcMAWWboxoF5kqcSzA"
 TEST_TRACK_LINK = f'https://drive.google.com/file/d/{TEST_TRACK_ID}/view?usp=sharing'
 
-TEST_FILE_CONTENT = open(os.path.join(DIR_PATH, 'Raggae_Soundsystem_intro.mp3'), 'rb').read()
-TEST_UPLOADED_FILE = io.BytesIO(TEST_FILE_CONTENT)
-TEST_UPLOADED_FILE.filename = 'Raggae_Soundsystem_intro.mp3'  # Set the filename attribute
-WRONG_FILE_FORMAT = os.path.join(DIR_PATH, 'wrong_file_format.txt')
+WRONG_FILE_FORMAT = os.path.join(MEDIA_TESTS_DIR, 'wrong_file_format.txt')
 
 
 def delete_file_if_exists(file_to_delete: str):
@@ -42,7 +42,7 @@ def delete_file_if_exists_container(file_acrcloud_id_to_delete: str):
 @pytest.fixture()
 def cleanup():
     """Delete audio file from database after test"""
-    file_to_delete = 'intro + sound the system'
+    file_to_delete = TEST_UPLOAD_TRACK_TITLE
     delete_file_if_exists(file_to_delete)
     yield
     delete_file_if_exists(file_to_delete)
@@ -75,27 +75,29 @@ def slow_down_tests():
     time.sleep(5)
 
 
-@pytest.fixture(autouse=True)
-def init_uploaded_file_bytes():
+@pytest.fixture()
+def user_file_to_upload():
     """
     Reinitialize file pointer for test uploaded file.
     After tests using the file, the pointer is at the end when it should be at the beginning for the next test.
     """
-    TEST_UPLOADED_FILE = io.BytesIO(TEST_FILE_CONTENT)
-    TEST_UPLOADED_FILE.filename = 'Raggae_Soundsystem_intro.mp3'
+    test_file_content = open(os.path.join(MEDIA_TESTS_DIR, test_upload_track_filename), 'rb').read()
+    test_uploaded_file = io.BytesIO(test_file_content)
+    test_uploaded_file.filename = test_upload_track_filename  # Set the filename attribute
+    return test_uploaded_file
 
 
 def test_get_files_in_db():
     assert type(get_files_in_db()) is list
 
 
-def test_upload_to_db_protected(cleanup):
+def test_upload_to_db_protected(cleanup, user_file_to_upload):
     db_start = get_files_in_db()
-    added_track_title = 'intro + sound the system'
+    added_track_title = TEST_UPLOAD_TRACK_TITLE
     upload_to_db_protected(
-        TEST_UPLOADED_FILE,
+        user_file_to_upload,
         title=added_track_title,
-        artist='Jenja & The Band'
+        artist=TEST_UPLOAD_TRACK_ARTIST
     )
     db_end = get_files_in_db()
     assert len(db_start) < len(db_end)
@@ -106,19 +108,20 @@ def test_upload_to_db_protected(cleanup):
     assert added_track_title in end_db_titles
 
 
-def test_upload_to_db_duplicate_error(cleanup):
-    added_track_title = 'intro + sound the system'
+def test_upload_to_db_duplicate_error(cleanup, user_file_to_upload):
+    user_file_to_upload_copy = deepcopy(user_file_to_upload)
+    added_track_title = TEST_UPLOAD_TRACK_TITLE
     upload_to_db_protected(
-        TEST_UPLOADED_FILE,
+        user_file_to_upload,
         title=added_track_title,
-        artist='Jenja & The Band'
+        artist=TEST_UPLOAD_TRACK_ARTIST
     )
 
     with pytest.raises(MusicDuplicationError):
         upload_to_db_protected(
-            TEST_UPLOADED_FILE,
+            user_file_to_upload_copy,
             title=added_track_title,
-            artist='Jenja & The Band'
+            artist=TEST_UPLOAD_TRACK_ARTIST
         )
 
 
@@ -144,12 +147,12 @@ def test_get_human_readable_db():
         assert track in db_tracks_titles
 
 
-def test_delete_from_db(cleanup):   
-    added_track_title = 'intro + sound the system'
+def test_delete_from_db(cleanup, user_file_to_upload):
+    added_track_title = TEST_UPLOAD_TRACK_TITLE
     upload_to_db_protected(
-        TEST_UPLOADED_FILE,
+        user_file_to_upload,
         title=added_track_title,
-        artist='Jenja & The Band'
+        artist=TEST_UPLOAD_TRACK_ARTIST
     )
     db_before_delete = get_files_in_db()
     delete_from_db(added_track_title)
@@ -158,12 +161,12 @@ def test_delete_from_db(cleanup):
     assert added_track_title not in [file['title'] for file in db_after_delete]
 
 
-def test_delete_id_from_db_protected_for_web(cleanup):
-    added_track_title = 'intro + sound the system'
+def test_delete_id_from_db_protected_for_web(cleanup, user_file_to_upload):
+    added_track_title = TEST_UPLOAD_TRACK_TITLE
     upload_to_db_protected(
-        TEST_UPLOADED_FILE,
+        user_file_to_upload,
         title=added_track_title,
-        artist='Jenja & The Band'
+        artist=TEST_UPLOAD_TRACK_ARTIST
     )
     db_before_delete = get_files_in_db()
     file_id = get_id_from_title(db_before_delete, added_track_title)

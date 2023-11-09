@@ -1,7 +1,7 @@
 import datetime
 import os.path
 
-from loguru import logger  # TODO: Add logging to logger and its tests
+from loguru import logger
 from instagram_bot import IGBOT, IGDownloadError
 from music_recognition import list_container_files_and_results, add_to_container_recognizer
 from drive_logic import Drive

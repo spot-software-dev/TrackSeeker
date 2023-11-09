@@ -1,4 +1,4 @@
-from loguru import logger  # TODO: Add logging to instagram_bot.py and tests
+from loguru import logger
 import os
 import requests
 import time
@@ -164,8 +164,6 @@ class IGBOT:
         else:
             raise IGMetaDataError(response.text)
 
-    # TODO: Add clean_stories_directory method to bot init and change tests accordingly (replaces setup).
-    # TODO: Make sure tests that need files in the stories directory get them using pytest.fixture!
     @staticmethod
     def clean_stories_directory():
         """

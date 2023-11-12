@@ -92,22 +92,19 @@ BUCKET_INTERACTION_TOKEN = os.environ.get('TEST_ALL_TOKEN', '')
 
 
 # noinspection PyUnresolvedReferences
-def _upload_to_db(audio_file: BytesIO, title: str, artist: str, album: str = 'Single') -> None:
+def _upload_to_db(audio_file: BytesIO, title: str) -> None:
     """
     Upload an audio file to user music bucket.
 
     :param audio_file: user audio file
     :param title: Music Title
-    :param artist: Music Artist
-    :param album: Music Album
     :exception MusicUploadError: The ACRCloud API encountered an error while uploading user's audio file
     :return: None (Everything is fine)
     """
     url = f"https://api-v2.acrcloud.com/api/buckets/{BUCKET_ID}/files"
 
     payload = {'title': title or os.path.splitext(secure_filename(audio_file.filename))[0],
-               'data_type': 'audio',
-               "user_defined": json.dumps({"artist": artist, 'album': album})}
+               'data_type': 'audio'}
     files = [
         ('file', (secure_filename(audio_file.filename), audio_file, 'audio/mpeg'))
     ]
@@ -131,25 +128,22 @@ def _upload_to_db(audio_file: BytesIO, title: str, artist: str, album: str = 'Si
     return
 
 
-def upload_to_db_protected(audio_file: BytesIO, title: str, artist: str, album: str = 'Single') -> None:
+def upload_to_db_protected(audio_file: BytesIO, title: str) -> None:
     """
     Upload an audio file to user music bucket.
 
     :param audio_file: user audio file
     :param title: Music Title
-    :param artist: Music Artist
-    :param album: Music Album
     :exception MusicUploadError: The ACRCloud API encountered an error while uploading user's audio file
     :return: None (Everything is fine)
     """
     logger.info("Before uploading")
     db = get_files_in_db()
-    files_metadata = get_musical_metadata(db)
-    if title in files_metadata:
-        if artist in files_metadata[title]['artist']:
-            raise MusicDuplicationError()
+    titles_and_ids = get_db_titles_ids(db)
+    if title in titles_and_ids:
+        raise MusicDuplicationError()
 
-    _upload_to_db(audio_file, title, artist, album)
+    _upload_to_db(audio_file, title)
 
 
 def get_files_in_db() -> list:
@@ -210,9 +204,9 @@ def delete_from_db(title: str) -> None:
     :return: None (Everything is fine)
     """
     db = get_files_in_db()
-    files_in_db = get_musical_metadata(db)
+    files_in_db = get_db_titles_ids(db)
     if title in list(files_in_db):
-        file_id = get_id_from_title(db, title)
+        file_id = files_in_db[title]
         delete_id_from_db(file_id)
     else:
         raise MusicFileDoesNotExist(f"Entered file title: {title}")
@@ -227,51 +221,42 @@ def delete_id_from_db_protected_for_web(file_id: int) -> None:
     :return: None (Everything is fine)
     """
     db = get_files_in_db()
-    files_metadata = get_musical_metadata(db)
-    if file_id in list(map(lambda metadata: metadata['id'], files_metadata.values())):
-        delete_id_from_db(int(file_id))
+    titles_and_ids = get_db_titles_ids(db)
+    if file_id in list(titles_and_ids.values()):
+        delete_id_from_db(file_id)
     else:
-        raise MusicFileDoesNotExist(f"{'files_in_db': files_in_db, 'entered_title': title}")
+        raise MusicFileDoesNotExist(f"Files in db: {db}, Entered File ID: {file_id}")
 
 
-def get_musical_metadata(database: list) -> dict:
+def get_db_titles_ids(database: list) -> dict:
     """
-    Get the musical metadata of all tracks in database: title, album, artist, ACRCloud database ID
-    {song_title: {'id': id, 'artist': artist, 'album': album}, song_title_2: {'id': id, ...}, ...}
+    Get the ID for all tracks in database: {Title1: ACRCloud database ID, Title2: ..., }
     """
     titles_ids = dict()
     for track_num in range(len(database)):
         file_title = database[track_num]['title']
-        file_id = database[track_num]['id']
-        file_artist = database[track_num]['user_defined']['artist']
-        file_album = database[track_num]['user_defined']['album']
-
-        titles_ids[file_title] = {
-            'id': file_id,
-            'artist': file_artist,
-            'album': file_album
-        }
+        file_id = int(database[track_num]['id'])
+        titles_ids[file_title] = file_id
 
     return titles_ids
 
 
 def get_id_from_title(database: list, title: str) -> int:
-    db_ids_titles = get_musical_metadata(database)
-    return int(db_ids_titles[title]['id'])
+    db_ids_titles = get_db_titles_ids(database)
+    return db_ids_titles[title]
 
 
 def get_human_readable_db() -> list:
     """
-    Get a list of all tracks in the database in a human-readable form (flattened json):
-    [{'title': title, 'album': album, 'artist': artist, 'id': ACRCloud database ID}, {'title': title_2, ...}, ...]
+    Get a list of all tracks in the database with only relevant data:
+    [{'title': title_1, 'id': ACRCloud database ID}, {'title': title_2, ...}, ...]
     """
     db = get_files_in_db()
-    musical_metadata = get_musical_metadata(db)
+    db_titles_ids = get_db_titles_ids(db)
     readable_db = []
-    for title in musical_metadata:
+    for title in db_titles_ids:
         readable_db.append(
-            {'title': title, 'album': musical_metadata[title]['album'],
-             'artist': musical_metadata[title]['artist'], 'id': musical_metadata[title]['id']}
+            {'title': title, 'id': db_titles_ids[title]}
         )
 
     return readable_db
@@ -337,8 +322,6 @@ def list_container_files_and_results() -> list:
             metadata = recognition['results']['custom_files'][0]['result']
             relevant_metadata = {
                 'title': metadata['title'],
-                'artist': metadata['artist'],
-                'album': metadata['album']
             }
             recognition_data['results'] = relevant_metadata
         else:

@@ -36,14 +36,12 @@ def get_database_songs():
 def upload_song():
     audio_file = request.files.get("file")
     title = request.form.get("title")
-    artist = request.form.get("artist")
-    album = request.form.get("album")
 
-    if not all([audio_file, title, artist]):
+    if not all([audio_file, title]):
         return jsonify(error="Missing required parameters."), 400
 
     try:
-        upload_to_db_protected(audio_file=audio_file, title=title, artist=artist, album=album)
+        upload_to_db_protected(audio_file=audio_file, title=title)
         return jsonify(message="Song uploaded successfully.")
     except Exception as e:
         logger.error(f"Server error uploading song. Traceback:\n{traceback.format_exc()}")

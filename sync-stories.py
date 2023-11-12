@@ -23,8 +23,7 @@ if __name__ == "__main__":
             logger.error(f'Error occurred: {e}. Traceback: {traceback.format_exc()}')
         else:
             logger.success(f'Completed sync with no errors at {date_now}')
-
-        time.sleep(60 * COOLDOWN_MINUTES)
+            time.sleep(60 * COOLDOWN_MINUTES)
 
         logger.info('Clearing stories directory...')
         IGBOT.clean_stories_directory()

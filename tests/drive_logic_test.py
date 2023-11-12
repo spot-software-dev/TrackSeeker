@@ -4,7 +4,6 @@ import time
 import datetime
 from .test_tools import url_validator, date_validator
 from ..drive_logic import Drive, DriveFolderNotFound, STORIES_DIR_PATH
-from ..instagram_bot import IGBOT
 
 TEST_TRACK_ID = "1LwTsb1fsXpT9TkWcMAWWboxoF5kqcSzA"
 TEST_TRACK_LINK = f'https://drive.google.com/file/d/{TEST_TRACK_ID}/view?usp=sharing'
@@ -18,11 +17,6 @@ STORY_STORY_LOCATIONS_DIR_ID = "178oc91hM5JbzdLQtyUvOdblmdq9pr2oG"
 DATE = datetime.datetime(2023, 10, 13).date()
 DATE2 = datetime.datetime(2023, 10, 1).date()
 TODAY_DATE = datetime.datetime.today().date()
-
-
-@pytest.fixture
-def drive():
-    return Drive()
 
 
 @pytest.fixture
@@ -78,6 +72,19 @@ def delete_duplicates_setup(delete_test_setup):
 
     return delete_test_setup
 
+
+@pytest.fixture
+def sorted_today_spot_stories(drive):
+    spot_today_stories = drive.get_today_locations_stories_usernames(drive.SPOT_LOCATIONS_DIR_ID)
+    spot_today_stories.sort(key=lambda location: location['location'])
+    return spot_today_stories
+
+
+@pytest.fixture
+def sorted_today_storystory_stories(drive, igbot):
+    storystory_today_stories = drive.get_today_locations_stories_usernames(drive.STORY_STORY_LOCATIONS_DIR_ID)
+    storystory_today_stories.sort(key=lambda location: location['location'])
+    return storystory_today_stories
 
 # Build query
 # Dir query
@@ -208,6 +215,18 @@ def test_get_today_locations_stories_usernames(drive):
     assert EXISTENT_LOCATION_NAME in [usernames_locations['location'] for usernames_locations in usernames_to_download_by_location]
 
 
+def test_spot_dir_and_storystory_dir(caplog, drive, igbot, sorted_today_spot_stories, sorted_today_storystory_stories):
+    for location_usernames in [story['usernames'] for story in sorted_today_storystory_stories]:
+        for username in location_usernames:
+            _ = igbot.get_user_stories_metadata(username=username)  # Logs if user uploaded a story with no audio
+
+    if "Story has no audio" in caplog.text:
+        pytest.skip("Some story-story stories in Google Drive have no audio and will not be added to Spot Stories. Test unavailable, please wait for the next day.")
+    for today_stories in zip(sorted_today_spot_stories, sorted_today_storystory_stories):
+        assert len(today_stories[0]['usernames']) >= len(today_stories[1]['usernames'])
+        assert all([username in today_stories[0]['usernames'] for username in today_stories[1]['usernames']])
+
+
 # Custom Error test
 
 def test_non_existent_location(drive):
@@ -229,15 +248,6 @@ def test_get_download_link(drive):
     assert url_validator(link)
 
 
-def test_download_files(drive):
-    downloaded_files = drive.download_files(dir_name=LOCATION2, parent_dir_id=drive.STORY_STORY_LOCATIONS_DIR_ID,
-                                            start_year=DATE2.year, end_year=DATE2.year,
-                                            start_month=DATE2.month, end_month=DATE2.month,
-                                            start_day=DATE2.day, end_day=DATE2.day)
-    for file in downloaded_files:
-        assert os.path.exists(file['path'])
-
-
 # Video link
 
 def test_get_video_link(drive):
@@ -257,13 +267,12 @@ def test_get_id_from_sharable_link(drive):
 
 # Upload video
 
-def test_upload_story_for_sync(drive):
+def test_upload_story_for_sync(drive, igbot):
     today_locations_usernames = drive.get_today_locations_stories_usernames(locations_dir_id=drive.STORY_STORY_LOCATIONS_DIR_ID)
     if not today_locations_usernames:
         pytest.skip("Locations followed do not have any location stories. Skipping test.")
     location = today_locations_usernames[0]['location']
     username = today_locations_usernames[0]['usernames'][0]
-    igbot = IGBOT()
     user_stories_metadata = igbot.get_user_stories_metadata(username=username)
     story_id = user_stories_metadata[0]['id']
     downloaded_story_metadata = igbot.download_story(story_metadata=user_stories_metadata[0],

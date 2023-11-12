@@ -2,20 +2,15 @@ from setup import google_key_generate
 from loguru import logger
 import os.path
 import datetime
-import io
-import shutil
 
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
-from googleapiclient.http import MediaIoBaseDownload, MediaFileUpload
+from googleapiclient.http import MediaFileUpload
 from ssl import SSLWantWriteError, SSLEOFError
 
 from instagram_bot import STORIES_DIR_PATH
-
-DOWNLOADED_STORIES_DIR = os.path.join(
-    os.path.abspath(os.curdir), 'DownloadedStories')
-os.makedirs(DOWNLOADED_STORIES_DIR, exist_ok=True)
+from setup import MAIN_DIR
 
 # If modifying these scopes, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/drive.metadata.readonly',
@@ -23,8 +18,6 @@ SCOPES = ['https://www.googleapis.com/auth/drive.metadata.readonly',
 
 API_NAME = 'drive'
 API_VERSION = 'v3'
-
-MAIN_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 class DriveError(HttpError):
@@ -36,17 +29,6 @@ class GoogleCloudAuthError(DriveError):
 
     def __init__(self, e):
         self.message = f"Encountered an error while authenticating google cloud: {e}"
-        logger.error(self.message)
-
-    def __str__(self):
-        return self.message
-
-
-class DriveDownloadError(DriveError):
-    """Raised when encountered an error while downloading from Drive"""
-
-    def __init__(self, e):
-        self.message = f"Encountered an error while downloading from Drive: {e}"
         logger.error(self.message)
 
     def __str__(self):
@@ -137,12 +119,6 @@ class DriveDeleteError(DriveError):
 
     def __str__(self):
         return self.message
-
-
-def clear_downloaded_stories_dir() -> None:
-    """Removes all files in the downloaded stories dir."""
-    for file in os.listdir(DOWNLOADED_STORIES_DIR):
-        os.remove(os.path.join(DOWNLOADED_STORIES_DIR, file))
 
 
 class Drive:
@@ -553,52 +529,6 @@ class Drive:
     @staticmethod
     def get_id_from_sharable_link(link: str) -> str:
         return link.replace('https://drive.google.com/file/d/', '').replace('/view?usp=sharing', '')
-
-    def _download(self, file_id: int, file_name: str) -> str:
-        """
-        Download the specified file to the Downloaded Stories folder and name it.
-        :param file_id: Google Drive file ID.
-        :param file_name: The name that the downloaded file will have.
-        :return: Absolute path to the downloaded file
-        :exception: DriveDownloadError: Couldn't download or save the Drive file
-        """
-        request = self.service.files().get_media(fileId=file_id)
-        fh = io.BytesIO()
-
-        downloader = MediaIoBaseDownload(fh, request, chunksize=204800)
-        done = False
-
-        try:
-            while not done:
-                status, done = downloader.next_chunk()
-                logger.debug(f"Download status: {int(status.progress() * 100)}")
-
-            fh.seek(0)
-
-            cleaned_file_name = file_name.replace(':', '-')
-            file_path = os.path.join(DOWNLOADED_STORIES_DIR, cleaned_file_name)
-            with open(file_path, "wb") as f:
-                shutil.copyfileobj(fh, f)
-
-            logger.success(f"Downloaded {file_name} and saved it in {file_path}")
-            return file_path
-
-        except Exception as e:
-            raise DriveDownloadError(e)
-
-    def download_files(self, dir_name: str, parent_dir_id: str, start_year: int, start_month: int, start_day: int,
-                       end_year: int, end_month: int, end_day: int) -> list:
-        """Download video files from Drive dir in the time specified."""
-
-        drive_videos = self.get_videos_at_date_range_from_dir(dir_name=dir_name, parent_dir_id=parent_dir_id,
-                                                              start_year=start_year, start_month=start_month, start_day=start_day,
-                                                              end_year=end_year, end_month=end_month, end_day=end_day)
-        downloaded_files = []
-        for file in drive_videos:
-            downloaded_files.append(
-                {'id': file['id'], 'path': self._download(file['id'], file['name'])})
-
-        return downloaded_files
 
     def get_download_link(self, file_id: str):
         """Get the url link to download the file from drive"""

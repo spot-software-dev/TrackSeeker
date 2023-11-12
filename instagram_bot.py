@@ -1,13 +1,11 @@
-from loguru import logger  # TODO: Add logging to instagram_bot.py and tests
+from loguru import logger
 import os
 import requests
 import time
 import datetime
-from dotenv.main import load_dotenv
-load_dotenv()
+from setup import MAIN_DIR
 
 RAPID_API_TIME_LIMIT = 1
-MAIN_DIR = os.path.dirname(os.path.abspath(__file__))
 FILE_DIR_PATH = os.path.join(MAIN_DIR, 'instagram_bot_media')
 STORIES_DIR_PATH = os.environ.get('STORIES_DIR_PATH', FILE_DIR_PATH)
 if not os.path.exists(STORIES_DIR_PATH):
@@ -70,7 +68,7 @@ class IGBOT:
 
         self.last_request_time = time.time()
 
-        if not response.ok:
+        if not response.ok or 'Something went wrong' in response.text:
             raise IGGetError(response.text)
         return response.json()['id']
 
@@ -156,6 +154,8 @@ class IGBOT:
                     if story.get('has_audio'):
                         story_url = story['video_versions'][0]['url']
                         user_stories_metadata.append({"id": story['id'], "download_url": story_url})
+                    else:
+                        logger.info(f"Story has no audio. Skipping story ID {story['id']} by {username}")
             else:
                 # TODO: Change the logger message. It is not necessarily true that the user has no stories
                 logger.info(
@@ -164,8 +164,6 @@ class IGBOT:
         else:
             raise IGMetaDataError(response.text)
 
-    # TODO: Add clean_stories_directory method to bot init and change tests accordingly (replaces setup).
-    # TODO: Make sure tests that need files in the stories directory get them using pytest.fixture!
     @staticmethod
     def clean_stories_directory():
         """

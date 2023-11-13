@@ -23,4 +23,4 @@ RUN pip install gunicorn
 COPY . .
 
 # Use Gunicorn to run the application.
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "-w 4", "app:app", "--timeout 120", "--worker-class gevent"]
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "-w 4", "app:app", "--timeout 300", "--worker-class gevent", "--threads=3"]

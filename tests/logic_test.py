@@ -6,7 +6,9 @@ LOCATION = 'art club'
 
 
 def test_location_logic(drive):
-    recognized_stories = location_logic(location=LOCATION, drive=drive, day=26, month=8, year=2023, end_day=26, end_month=8, end_year=2023)
+    recognized_stories = location_logic(location=LOCATION, drive=drive,
+                                        day=26, month=8, year=2023,
+                                        end_day=26, end_month=8, end_year=2023)
     print(f"Recognized Stories: {recognized_stories}")
     first_story_url = recognized_stories[0]['drive_url']
     first_story_download_url = recognized_stories[0]['download_url']

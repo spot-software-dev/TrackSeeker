@@ -17,7 +17,7 @@ CREDENTIALS = {
     "type": "service_account",
     "project_id": f"{PROJECT_ID}",
     "private_key_id": f"{GOOGLE_PRIVATE_KEY_ID}",
-    "private_key": f"-----BEGIN PRIVATE KEY-----{GOOGLE_PRIVATE_KEY}-----END PRIVATE KEY-----\n",
+    "private_key": f"{GOOGLE_PRIVATE_KEY}",
     "client_email": f"{GOOGLE_CLIENT_EMAIL}",
     "client_id": f"{GOOGLE_CLIENT_ID}",
     "auth_uri": "https://accounts.google.com/o/oauth2/auth",

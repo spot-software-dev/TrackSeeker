@@ -27,6 +27,12 @@ def get_story_id_from_name(story: dict) -> str:
     return story_id
 
 
+def remove_duplicated_users_from_locations_and_users(locations_and_users: list):
+    for location_and_users in locations_and_users:
+        location_and_users['usernames'] = set(location_and_users['usernames'])
+
+
+
 def sync_user_stories(drive: Drive, instagram_bot: IGBOT) -> None:
     """
     Add each of today's Instagram location story user's stories that hasn't been uploaded yet to user's Drive
@@ -40,13 +46,13 @@ def sync_user_stories(drive: Drive, instagram_bot: IGBOT) -> None:
     and add them to user's main Drive stories folder.
     """
     today_usernames_by_locations = drive.get_today_locations_stories_usernames(locations_dir_id=drive.STORY_STORY_LOCATIONS_DIR_ID)
+    remove_duplicated_users_from_locations_and_users(today_usernames_by_locations)
     spot_stories_locations_dirs = drive.get_spot_locations_dirs()
     spot_stories_locations_names = [location['name'] for location in spot_stories_locations_dirs]
 
     for usernames_by_location in today_usernames_by_locations:
         location_name = usernames_by_location['location']
         usernames = usernames_by_location['usernames']
-
         if location_name not in spot_stories_locations_names:
             drive.create_drive_dir(dir_name=location_name, parent_dir_id=drive.SPOT_LOCATIONS_DIR_ID)
             time.sleep(5)

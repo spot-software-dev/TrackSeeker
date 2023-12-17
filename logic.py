@@ -32,7 +32,6 @@ def remove_duplicated_users_from_locations_and_users(locations_and_users: list):
         location_and_users['usernames'] = set(location_and_users['usernames'])
 
 
-
 def sync_user_stories(drive: Drive, instagram_bot: IGBOT) -> None:
     """
     Add each of today's Instagram location story user's stories that hasn't been uploaded yet to user's Drive

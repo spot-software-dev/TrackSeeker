@@ -538,8 +538,11 @@ class Drive:
 
     @staticmethod
     def get_id_from_sharable_link(link: str) -> str:
-        return link.replace('https://drive.google.com/file/d/', '').replace('/view?usp=sharing', '')
-
+        try:
+            return link.replace('https://drive.google.com/file/d/', '').replace('/view?usp=sharing', '')
+        except AttributeError:
+            logger.warning(f"Tried getting file drive link but link does not exist. Link: {link}")
+            
     def get_download_link(self, file_id: str):
         """Get the url link to download the file from drive"""
         logger.debug('Getting download link...')

@@ -205,20 +205,30 @@ class Drive:
         return query
 
     def get_dir_id(self, query: str, dir_name: str):
-
+        """Get Google Drive dir ID"""
         results = self.service.files().list(q=query).execute()
         files = results.get('files', [])
 
         if not files:
             raise DriveFolderNotFound(dir_name=dir_name)
         else:
-            drive_dir = []
             for directory in files:
-                drive_dir.append(directory['id'])
                 logger.debug(f'Found directory with the name: {directory["name"]} and the ID: {directory["id"]}')
-            if len(drive_dir) > 1:
-                raise DriveMultipleDirs(dirs=files, partial_name=dir_name)
-            return drive_dir[0]
+            if len(files) > 1:
+                # Spot drive dir (without location ID in name)
+                dirs = [drive_dir for drive_dir in files if dir_name == drive_dir["name"]]
+                if dirs:
+                    if len(dirs) > 1:
+                        raise DriveMultipleDirs(dirs=files, partial_name=dir_name)
+                    return dirs[0]['id']
+                # Story-Story drive dir (with location ID in name)
+                dirs = [drive_dir for drive_dir in files if "_" == drive_dir["name"].split(dir_name)[1][0]]
+                if len(dirs) > 1:
+                    raise DriveMultipleDirs(dirs=files, partial_name=dir_name)
+                else:
+                    return dirs[0]["id"]
+
+            return files[0]["id"]
 
     def get_files_from_dir(self, query: str):
 

@@ -15,3 +15,9 @@ class Config:
 
     # CORS Configuration
     CORS_HEADERS = 'Content-Type'
+
+    # Secret Key
+    SECRET_KEY = os.environ.get('FLASK_SECRET_KEY')
+
+    # Database Connection
+    SQLALCHEMY_DATABASE_URI = os.environ.get('SQLALCHEMY_DATABASE_URI')

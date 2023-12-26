@@ -173,7 +173,8 @@ class Drive:
         parent_dir_id = kwargs.get('parent_dir_id')
 
         if dir_name:
-            query += f" and name contains '\"{dir_name}\"'"
+            query_dir_name = dir_name.replace("'", "\\'").replace('"', '\\"')
+            query += f" and name contains '\"{query_dir_name}\"'"
         if parent_dir_id:
             query += f" and '{parent_dir_id}' in parents"
 

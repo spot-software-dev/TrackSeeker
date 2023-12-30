@@ -33,6 +33,7 @@ instagram_bot_media
 containers.json
 public-endpoint.json
 tests/test_instagram_bot_media/
+database.ini
 
 
 # Coverage reports

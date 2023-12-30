@@ -1,3 +1,7 @@
+"""
+Database in this file references ACRCloud database, which contains only music tracks without owner data
+"""
+
 from loguru import logger
 import requests
 import datetime
@@ -192,7 +196,7 @@ def delete_id_from_db(file_id: int) -> None:
         "--header", f"Authorization: Bearer {BUCKET_INTERACTION_TOKEN}"
     ])
     logger.info(f"Finished deleting audio file '{file_id}' from database")
-    logger.debug(f"CMD return code: {return_code}")
+    logger.debug(f"CMD return code: {return_code.returncode}")
 
 
 def delete_from_db(title: str) -> None:

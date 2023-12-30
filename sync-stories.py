@@ -5,33 +5,31 @@ import time
 from drive_logic import Drive
 from instagram_bot import IGBOT
 
-COOLDOWN_MINUTES = 30  # Not too much, not too little.
-
-
-def update_date(igbot: IGBOT, drive_obj: Drive):
-    """Update the date_now variable with the current date."""
-    current_date = datetime.datetime.today().date()
-    logger.debug(f"Updating date to {current_date}")
-    drive_obj.date_now = current_date
-    igbot.date_now = current_date
-    return current_date
+COOLDOWN_MINUTES = 120  # Not too much, not too little.
 
 
 if __name__ == "__main__":
     drive = Drive()
     instagram_bot = IGBOT()
-    date_now = update_date(instagram_bot, drive)
+    date_now = datetime.datetime.today().date()
+    drive.date_now = date_now
+    instagram_bot.date_now = date_now
     while True:
         logger.info(f'Synchronizing at {date_now}')
         try:
             from logic import master_sync
             master_sync(drive, instagram_bot)
+        except KeyError as e:
+            logger.error(f"Got known KeyError problem. Read the warning and investigate JSON and username. Error: {e}")
         except Exception as e:
             logger.error(f'Error occurred: {e}. Traceback: {traceback.format_exc()}')
         else:
             logger.success(f'Completed sync with no errors at {date_now}')
-            time.sleep(60 * COOLDOWN_MINUTES)
-            date_now = update_date(instagram_bot, drive)
+            date_now = datetime.datetime.today().date()
+            logger.debug(f"Updating date to {date_now}")
+            drive.date_now = date_now
+            instagram_bot.date_now = date_now
 
         logger.info('Clearing stories directory...')
         IGBOT.clean_stories_directory()
+        time.sleep(60 * COOLDOWN_MINUTES)

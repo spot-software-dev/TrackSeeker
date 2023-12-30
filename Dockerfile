@@ -17,7 +17,7 @@ RUN pip install -r requirements.txt --upgrade
 RUN apt update && apt install -y curl
 
 # Install gunicorn for prod
-RUN pip install gunicorn
+RUN pip install gunicorn[gevent]
 
 # Copy the source code into the container.
 COPY . .
